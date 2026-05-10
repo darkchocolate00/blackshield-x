@@ -1,0 +1,15 @@
+node_modules/
+dist/
+out/
+build/
+
+electron/dist/
+electron/node_modules/
+electron/out/
+
+*.exe
+*.zip
+*.blockmap
+*.log
+
+win-unpacked/

@@ -1,0 +1,6 @@
+{
+  "searchEngine": "duckduckgo",
+  "performance": "balanced",
+  "autoUpdate": true,
+  "saveHistory": true
+}

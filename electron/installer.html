@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>BlackShield X Installer</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin:0;
+            height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+
+            background: rgba(0,0,0,0.05);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+
+            font-family: "Segoe UI", sans-serif;
+            color: #fff;
+            overflow:hidden;
+        }
+
+        /* PANEL */
+        .panel {
+            width:520px;
+            padding:30px;
+            border-radius:18px;
+
+            background: rgba(15,15,15,0.75);
+
+            box-shadow:
+                    0 0 60px rgba(0,255,255,0.08),
+                    inset 0 0 20px rgba(255,255,255,0.03);
+
+            backdrop-filter: blur(35px);
+        }
+
+        /* HEADER */
+        .logo {
+            text-align:center;
+            font-size:26px;
+            letter-spacing:2px;
+            margin-bottom:10px;
+            text-shadow: 0 0 20px rgba(0,255,255,0.5);
+        }
+
+        .subtitle {
+            text-align:center;
+            font-size:13px;
+            opacity:0.6;
+            margin-bottom:25px;
+        }
+
+        /* STATUS */
+        .status {
+            text-align:center;
+            font-size:14px;
+            opacity:0.8;
+            margin-bottom:20px;
+        }
+
+        /* PROGRESS BAR */
+        .bar {
+            width:100%;
+            height:8px;
+            background: rgba(255,255,255,0.08);
+            border-radius:6px;
+            overflow:hidden;
+        }
+
+        .fill {
+            height:100%;
+            width:0%;
+            background: linear-gradient(90deg,#00f0ff,#0066ff);
+
+            box-shadow:
+                    0 0 12px #00f0ff,
+                    0 0 30px rgba(0,255,255,0.3);
+
+            transition: width 0.25s ease;
+        }
+
+        /* PERCENT */
+        .percent {
+            margin-top:8px;
+            text-align:center;
+            font-size:12px;
+            opacity:0.6;
+        }
+
+        /* STEPS */
+        .steps {
+            margin-top:25px;
+            font-size:13px;
+        }
+
+        .step {
+            margin:6px 0;
+            opacity:0.75;
+        }
+
+        .step.active {
+            opacity:1;
+            color:#00f0ff;
+        }
+
+        .step.done {
+            opacity:0.7;
+            color:#66ffcc;
+        }
+
+        /* FOOTER */
+        .footer {
+            margin-top:20px;
+            text-align:center;
+            font-size:11px;
+            opacity:0.4;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<div class="panel">
+
+    <div class="logo">BLACKSHIELD X</div>
+    <div class="subtitle">Secure • Intelligent • Fast</div>
+
+    <div class="status" id="statusText">
+        Preparing installation environment...
+    </div>
+
+    <div class="bar">
+        <div class="fill" id="progressFill"></div>
+    </div>
+
+    <div class="percent" id="percentText">0%</div>
+
+    <div class="steps" id="stepsContainer"></div>
+
+    <div class="footer">
+        Installing components securely...
+    </div>
+
+</div>
+
+<script>
+    const steps = [
+        "Preparing environment",
+        "Installing core engine",
+        "Configuring security layer",
+        "Finalizing setup"
+    ];
+
+    let progress = 0;
+    let currentStep = 0;
+
+    const fill = document.getElementById("progressFill");
+    const percent = document.getElementById("percentText");
+    const status = document.getElementById("statusText");
+    const stepsContainer = document.getElementById("stepsContainer");
+
+    function updateSteps() {
+        stepsContainer.innerHTML = "";
+
+        steps.forEach((s, i) => {
+            const el = document.createElement("div");
+
+            if (i < currentStep) {
+                el.className = "step done";
+                el.innerText = "✔ " + s;
+            } else if (i === currentStep) {
+                el.className = "step active";
+                el.innerText = "⏳ " + s;
+            } else {
+                el.className = "step";
+                el.innerText = "• " + s;
+            }
+
+            stepsContainer.appendChild(el);
+        });
+    }
+
+    function simulate() {
+        progress += Math.random() * 6;
+        if (progress > 100) progress = 100;
+
+        fill.style.width = progress + "%";
+        percent.innerText = Math.floor(progress) + "%";
+
+        let step = Math.floor(progress / 25);
+
+        if (step !== currentStep && step < steps.length) {
+            currentStep = step;
+            status.innerText = steps[currentStep] + "...";
+            updateSteps();
+        }
+
+        if (progress < 100) {
+            setTimeout(simulate, 180);
+        } else {
+            status.innerText = "Installation Complete";
+            updateSteps();
+        }
+    }
+
+    updateSteps();
+    simulate();
+</script>
+
+</body>
+</html>

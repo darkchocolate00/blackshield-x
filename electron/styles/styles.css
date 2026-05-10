@@ -1,0 +1,536 @@
+*{
+    box-sizing:border-box;
+}
+
+body{
+
+    margin:0;
+
+    overflow:hidden;
+
+    background:#050505;
+
+    color:white;
+
+    font-family:
+            "Segoe UI",
+            sans-serif;
+}
+
+/* =====================================
+   TAB BAR
+===================================== */
+
+#tabBar{
+
+    height:42px;
+
+    display:flex;
+
+    align-items:center;
+
+    background:#080808;
+
+    border-bottom:
+            1px solid
+            rgba(255,255,255,0.04);
+
+    padding:0 10px;
+
+    gap:10px;
+
+    overflow:hidden;
+}
+
+/* =====================================
+   TABS CONTAINER
+===================================== */
+
+#tabsContainer{
+
+    flex:1;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    overflow-x:auto;
+
+    scrollbar-width:none;
+}
+
+#tabsContainer::-webkit-scrollbar{
+    display:none;
+}
+
+/* =====================================
+   TAB
+===================================== */
+
+.tab{
+
+    min-width:180px;
+    max-width:240px;
+
+    height:32px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:10px;
+
+    padding:0 10px;
+
+    border-radius:10px;
+
+    background:#111111;
+
+    border:
+            1px solid
+            rgba(255,255,255,0.03);
+
+    transition:0.2s;
+
+    user-select:none;
+}
+
+.tab:hover{
+
+    background:#161616;
+}
+
+/* ACTIVE */
+
+.activeTab{
+
+    background:#1a1a1a;
+
+    border:
+            1px solid
+            rgba(255,255,255,0.08);
+}
+
+/* =====================================
+   TAB TITLE
+===================================== */
+
+.tabTitle{
+
+    flex:1;
+
+    overflow:hidden;
+
+    white-space:nowrap;
+
+    text-overflow:ellipsis;
+
+    font-size:12px;
+
+    opacity:0.85;
+
+    cursor:pointer;
+}
+
+/* =====================================
+   CLOSE TAB BUTTON
+===================================== */
+
+.closeTabBtn{
+
+    width:20px;
+    height:20px;
+
+    border:none;
+    outline:none;
+
+    border-radius:6px;
+
+    background:transparent;
+
+    color:white;
+
+    cursor:pointer;
+
+    transition:0.2s;
+
+    font-size:11px;
+}
+
+.closeTabBtn:hover{
+
+    background:#2b2b2b;
+}
+
+/* =====================================
+   NEW TAB BUTTON
+===================================== */
+
+#newTabBtn{
+
+    width:32px;
+    height:32px;
+
+    border:none;
+    outline:none;
+
+    border-radius:10px;
+
+    background:#151515;
+
+    color:white;
+
+    cursor:pointer;
+
+    transition:0.2s;
+
+    font-size:18px;
+}
+
+#newTabBtn:hover{
+
+    background:#232323;
+}
+
+/* =====================================
+   TOPBAR
+===================================== */
+
+#topbar{
+
+    height:70px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    padding:0 14px;
+
+    background:#0b0b0b;
+
+    border-bottom:
+            1px solid
+            rgba(255,255,255,0.05);
+
+    position:relative;
+
+    z-index:9999;
+}
+
+/* =====================================
+   WINDOW CONTROLS
+===================================== */
+
+.windowControls{
+
+    display:flex;
+
+    gap:8px;
+}
+
+.controlBtn{
+
+    width:34px;
+    height:34px;
+
+    border:none;
+    outline:none;
+
+    border-radius:12px;
+
+    background:#161616;
+
+    color:white;
+
+    cursor:pointer;
+
+    transition:0.2s;
+
+    font-size:14px;
+}
+
+.controlBtn:hover{
+
+    background:#232323;
+}
+
+.closeBtn:hover{
+
+    background:#ff3b30;
+}
+
+/* =====================================
+   URL BAR
+===================================== */
+
+#urlContainer{
+
+    flex:1;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+}
+
+#urlBar{
+
+    flex:1;
+
+    height:44px;
+
+    border:none;
+    outline:none;
+
+    border-radius:14px;
+
+    background:#101010;
+
+    color:white;
+
+    padding:0 16px;
+
+    font-size:14px;
+
+    transition:0.2s;
+}
+
+#urlBar:focus{
+
+    background:#141414;
+}
+
+/* =====================================
+   BUTTONS
+===================================== */
+
+#goBtn,
+.topBtn,
+.updateBtn{
+
+    height:42px;
+
+    border:none;
+    outline:none;
+
+    border-radius:12px;
+
+    background:#161616;
+
+    color:white;
+
+    padding:0 16px;
+
+    cursor:pointer;
+
+    transition:0.2s;
+
+    font-size:13px;
+}
+
+#goBtn:hover,
+.topBtn:hover,
+.updateBtn:hover{
+
+    background:#242424;
+}
+
+/* =====================================
+   ACTIONS
+===================================== */
+
+#topActions{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+}
+
+/* =====================================
+   SETTINGS PANEL
+===================================== */
+
+#settingsPanel{
+
+    position:fixed;
+
+    top:0;
+    right:-400px;
+
+    width:400px;
+    height:100vh;
+
+    background:#0c0c0c;
+
+    border-left:
+            1px solid
+            rgba(255,255,255,0.05);
+
+    padding:24px;
+
+    transition:0.3s ease;
+
+    z-index:10000;
+
+    overflow-y:auto;
+}
+
+#settingsPanel.open{
+
+    right:0;
+}
+
+/* =====================================
+   SETTINGS HEADER
+===================================== */
+
+.settingsHeader{
+
+    font-size:28px;
+
+    font-weight:600;
+
+    margin-bottom:30px;
+}
+
+/* =====================================
+   SETTING BLOCKS
+===================================== */
+
+.settingBlock{
+
+    margin-bottom:24px;
+}
+
+.settingBlock label{
+
+    display:block;
+
+    margin-bottom:10px;
+
+    opacity:0.7;
+
+    font-size:13px;
+}
+
+/* =====================================
+   SELECT
+===================================== */
+
+select{
+
+    width:100%;
+
+    height:44px;
+
+    border:none;
+    outline:none;
+
+    border-radius:12px;
+
+    background:#151515;
+
+    color:white;
+
+    padding:0 14px;
+
+    font-size:14px;
+}
+
+/* =====================================
+   CHECKBOX
+===================================== */
+
+.checkboxRow{
+
+    display:flex !important;
+
+    align-items:center;
+
+    gap:12px;
+
+    font-size:14px;
+}
+
+.checkboxRow input{
+
+    width:18px;
+    height:18px;
+}
+
+/* =====================================
+   DANGER BUTTONS
+===================================== */
+
+.dangerBtn{
+
+    width:100%;
+
+    height:46px;
+
+    border:none;
+    outline:none;
+
+    border-radius:12px;
+
+    background:#2a1212;
+
+    color:#ff9f9f;
+
+    cursor:pointer;
+
+    transition:0.2s;
+
+    font-size:14px;
+}
+
+.dangerBtn:hover{
+
+    background:#3a1616;
+}
+
+/* =====================================
+   VERSION
+===================================== */
+
+.versionText{
+
+    margin-top:30px;
+
+    opacity:0.35;
+
+    font-size:12px;
+
+    text-align:center;
+}
+
+/* =====================================
+   SCROLLBAR
+===================================== */
+
+::-webkit-scrollbar{
+
+    width:8px;
+    height:8px;
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:#222;
+
+    border-radius:10px;
+}
+
+::-webkit-scrollbar-track{
+
+    background:#0c0c0c;
+}

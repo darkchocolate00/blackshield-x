@@ -1,0 +1,278 @@
+```html id="jv5n2x"
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>
+        BlackShield X
+    </title>
+
+    <link
+            rel="stylesheet"
+            href="styles.css"
+    >
+
+</head>
+
+<body>
+
+<!-- =====================================
+     TAB BAR
+====================================== -->
+
+<div id="tabBar">
+
+    <div id="tabsContainer"></div>
+
+    <button
+            id="newTabBtn"
+            onclick="createNewTab()"
+    >
+        +
+    </button>
+
+</div>
+
+<!-- =====================================
+     TOPBAR
+====================================== -->
+
+<div id="topbar">
+
+    <!-- WINDOW CONTROLS -->
+
+    <div class="windowControls">
+
+        <button
+                class="controlBtn"
+                onclick="win.min()"
+        >
+            ─
+        </button>
+
+        <button
+                class="controlBtn"
+                onclick="win.max()"
+        >
+            ◻
+        </button>
+
+        <button
+                class="controlBtn closeBtn"
+                onclick="win.close()"
+        >
+            ✕
+        </button>
+
+    </div>
+
+    <!-- URL BAR -->
+
+    <div id="urlContainer">
+
+        <input
+                id="urlBar"
+                placeholder="Search or enter URL"
+        >
+
+        <button
+                id="goBtn"
+                onclick="navigate()"
+        >
+            Go
+        </button>
+
+    </div>
+
+    <!-- ACTIONS -->
+
+    <div id="topActions">
+
+        <button
+                class="topBtn"
+                onclick="openHistory()"
+        >
+            History
+        </button>
+
+        <button
+                class="topBtn"
+                onclick="openBookmarks()"
+        >
+            Bookmarks
+        </button>
+
+        <button
+                class="topBtn"
+                onclick="addBookmark()"
+        >
+            ★
+        </button>
+
+        <button
+                class="topBtn"
+                onclick="toggleSettings()"
+        >
+            ⚙
+        </button>
+
+    </div>
+
+</div>
+
+<!-- =====================================
+     SETTINGS PANEL
+====================================== -->
+
+<div id="settingsPanel">
+
+    <div class="settingsHeader">
+        Settings
+    </div>
+
+    <!-- SEARCH ENGINE -->
+
+    <div class="settingBlock">
+
+        <label>
+            Search Engine
+        </label>
+
+        <select id="searchEngine">
+
+            <option value="duckduckgo">
+                DuckDuckGo
+            </option>
+
+            <option value="google">
+                Google
+            </option>
+
+            <option value="brave">
+                Brave Search
+            </option>
+
+            <option value="bing">
+                Bing
+            </option>
+
+        </select>
+
+    </div>
+
+    <!-- PERFORMANCE -->
+
+    <div class="settingBlock">
+
+        <label>
+            Performance Mode
+        </label>
+
+        <select id="performance">
+
+            <option value="lite">
+                Lite
+            </option>
+
+            <option value="balanced">
+                Balanced
+            </option>
+
+            <option value="pro">
+                Pro
+            </option>
+
+        </select>
+
+    </div>
+
+    <!-- AUTO UPDATE -->
+
+    <div class="settingBlock">
+
+        <label class="checkboxRow">
+
+            <input
+                    type="checkbox"
+                    id="autoUpdate"
+            >
+
+            Auto Update
+
+        </label>
+
+    </div>
+
+    <!-- SAVE HISTORY -->
+
+    <div class="settingBlock">
+
+        <label class="checkboxRow">
+
+            <input
+                    type="checkbox"
+                    id="saveHistory"
+            >
+
+            Save Browsing History
+
+        </label>
+
+    </div>
+
+    <!-- CACHE -->
+
+    <div class="settingBlock">
+
+        <button
+                class="dangerBtn"
+                onclick="clearCache()"
+        >
+            Clear Cache
+        </button>
+
+    </div>
+
+    <!-- COOKIES -->
+
+    <div class="settingBlock">
+
+        <button
+                class="dangerBtn"
+                onclick="clearCookies()"
+        >
+            Clear Cookies
+        </button>
+
+    </div>
+
+    <!-- UPDATE -->
+
+    <div class="settingBlock">
+
+        <button
+                class="updateBtn"
+        >
+            Check for Updates
+        </button>
+
+    </div>
+
+    <!-- VERSION -->
+
+    <div class="versionText">
+        BlackShield X v1.0.0
+    </div>
+
+</div>
+
+<!-- SCRIPT -->
+
+<script src="renderer.js"></script>
+
+</body>
+</html>
+```

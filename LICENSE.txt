@@ -1,0 +1,20 @@
+BlackShield X
+Copyright (c) 2026 M.Somasundaram (dev.pro)
+
+All rights reserved.
+
+BlackShield X and all associated software, source code, design, and technology
+are the exclusive property of M.Somasundaram (dev.pro).
+
+This software is proprietary and confidential. No part of this software may be
+copied, modified, distributed, reverse-engineered, or used in any form without
+explicit prior written permission from the author.
+
+Unauthorized use, reproduction, or distribution of this software is strictly prohibited.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES,
+OR OTHER LIABILITY ARISING FROM THE USE OF THIS SOFTWARE.
+
+BlackShield X is a product of M.Somasundaram (dev.pro).

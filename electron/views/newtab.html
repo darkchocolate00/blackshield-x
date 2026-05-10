@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>
+        BlackShield X
+    </title>
+
+    <style>
+
+        *{
+            box-sizing:border-box;
+        }
+
+        body{
+
+            margin:0;
+
+            width:100vw;
+            height:100vh;
+
+            overflow:hidden;
+
+            display:flex;
+
+            align-items:center;
+            justify-content:center;
+
+            flex-direction:column;
+
+            background:
+                    radial-gradient(
+                            circle at top,
+                            #111111,
+                            #050505 60%
+                    );
+
+            color:white;
+
+            font-family:
+                    "Segoe UI",
+                    sans-serif;
+        }
+
+        /* =====================================
+           BACKGROUND GLOW
+        ====================================== */
+
+        .glow{
+
+            position:absolute;
+
+            width:700px;
+            height:700px;
+
+            border-radius:50%;
+
+            background:
+                    radial-gradient(
+                            circle,
+                            rgba(0,140,255,0.08),
+                            transparent 70%
+                    );
+
+            filter:blur(90px);
+
+            animation:
+                    floatGlow 8s ease-in-out
+                    infinite alternate;
+        }
+
+        @keyframes floatGlow{
+
+            from{
+                transform:
+                        translate(-5%, -5%);
+            }
+
+            to{
+                transform:
+                        translate(5%, 5%);
+            }
+        }
+
+        /* =====================================
+           CONTENT
+        ====================================== */
+
+        .container{
+
+            position:relative;
+
+            z-index:2;
+
+            width:700px;
+
+            max-width:90vw;
+
+            text-align:center;
+        }
+
+        /* =====================================
+           LOGO
+        ====================================== */
+
+        .logo{
+
+            font-size:46px;
+
+            font-weight:700;
+
+            letter-spacing:3px;
+
+            margin-bottom:12px;
+        }
+
+        .subtitle{
+
+            opacity:0.5;
+
+            font-size:14px;
+
+            margin-bottom:40px;
+        }
+
+        /* =====================================
+           SEARCH
+        ====================================== */
+
+        .searchWrap{
+
+            display:flex;
+
+            align-items:center;
+
+            gap:12px;
+        }
+
+        #searchInput{
+
+            flex:1;
+
+            height:56px;
+
+            border:none;
+            outline:none;
+
+            border-radius:18px;
+
+            background:#101010;
+
+            color:white;
+
+            padding:0 18px;
+
+            font-size:15px;
+
+            transition:0.2s;
+        }
+
+        #searchInput:focus{
+
+            background:#151515;
+        }
+
+        #searchBtn{
+
+            width:110px;
+            height:56px;
+
+            border:none;
+            outline:none;
+
+            border-radius:18px;
+
+            background:#161616;
+
+            color:white;
+
+            cursor:pointer;
+
+            transition:0.2s;
+
+            font-size:14px;
+        }
+
+        #searchBtn:hover{
+
+            background:#242424;
+        }
+
+        /* =====================================
+           SHORTCUTS
+        ====================================== */
+
+        .shortcuts{
+
+            margin-top:40px;
+
+            display:flex;
+
+            justify-content:center;
+
+            gap:16px;
+
+            flex-wrap:wrap;
+        }
+
+        .shortcut{
+
+            width:130px;
+            height:90px;
+
+            border-radius:18px;
+
+            background:#101010;
+
+            border:
+                    1px solid
+                    rgba(255,255,255,0.04);
+
+            display:flex;
+
+            align-items:center;
+            justify-content:center;
+
+            flex-direction:column;
+
+            cursor:pointer;
+
+            transition:0.2s;
+        }
+
+        .shortcut:hover{
+
+            transform:
+                    translateY(-3px);
+
+            background:#171717;
+        }
+
+        .shortcutIcon{
+
+            font-size:24px;
+
+            margin-bottom:10px;
+        }
+
+        .shortcutText{
+
+            font-size:13px;
+
+            opacity:0.7;
+        }
+
+        /* =====================================
+           FOOTER
+        ====================================== */
+
+        .footer{
+
+            position:absolute;
+
+            bottom:25px;
+
+            opacity:0.25;
+
+            font-size:12px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<!-- BACKGROUND -->
+
+<div class="glow"></div>
+
+<!-- CONTENT -->
+
+<div class="container">
+
+    <!-- LOGO -->
+
+    <div class="logo">
+        BLACKSHIELD X
+    </div>
+
+    <div class="subtitle">
+        Secure Browsing • Persistent Sessions
+    </div>
+
+    <!-- SEARCH -->
+
+    <div class="searchWrap">
+
+        <input
+                id="searchInput"
+                placeholder="Search or enter URL"
+        >
+
+        <button
+                id="searchBtn"
+                onclick="search()"
+        >
+            Search
+        </button>
+
+    </div>
+
+    <!-- SHORTCUTS -->
+
+    <div class="shortcuts">
+
+        <div
+                class="shortcut"
+                onclick="openSite('https://youtube.com')"
+        >
+
+            <div class="shortcutIcon">
+                ▶
+            </div>
+
+            <div class="shortcutText">
+                YouTube
+            </div>
+
+        </div>
+
+        <div
+                class="shortcut"
+                onclick="openSite('https://github.com')"
+        >
+
+            <div class="shortcutIcon">
+                💻
+            </div>
+
+            <div class="shortcutText">
+                GitHub
+            </div>
+
+        </div>
+
+        <div
+                class="shortcut"
+                onclick="openSite('https://gmail.com')"
+        >
+
+            <div class="shortcutIcon">
+                ✉
+            </div>
+
+            <div class="shortcutText">
+                Gmail
+            </div>
+
+        </div>
+
+        <div
+                class="shortcut"
+                onclick="openSite('https://duckduckgo.com')"
+        >
+
+            <div class="shortcutIcon">
+                🔍
+            </div>
+
+            <div class="shortcutText">
+                DuckDuckGo
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- FOOTER -->
+
+<div class="footer">
+    BlackShield X Browser
+</div>
+
+<!-- SCRIPT -->
+
+<script>
+
+    const input =
+        document.getElementById(
+            "searchInput"
+        );
+
+    function search(){
+
+        const value =
+            input.value.trim();
+
+        if(!value){
+            return;
+        }
+
+        window.api.loadURL(value);
+    }
+
+    input.addEventListener(
+
+        "keydown",
+
+        (event)=>{
+
+            if(event.key === "Enter"){
+
+                search();
+            }
+        }
+    );
+
+    function openSite(url){
+
+        window.api.loadURL(url);
+    }
+
+</script>
+
+</body>
+</html>

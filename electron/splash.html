@@ -1,0 +1,365 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>BlackShield X</title>
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            width:100vw;
+            height:100vh;
+            overflow:hidden;
+
+            background:
+                    radial-gradient(circle at top left,#0f172a,#000000 60%),
+                    radial-gradient(circle at bottom right,#001b2e,#000000 50%);
+
+            font-family:"Segoe UI",sans-serif;
+            color:white;
+
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+
+        /* BACKGROUND GLOW */
+        .glow{
+            position:absolute;
+            width:700px;
+            height:700px;
+
+            background:radial-gradient(circle,
+            rgba(0,240,255,0.15),
+            transparent 70%);
+
+            filter:blur(90px);
+            animation:floatGlow 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatGlow{
+            from{
+                transform:translate(-5%, -5%) scale(1);
+            }
+            to{
+                transform:translate(5%, 5%) scale(1.15);
+            }
+        }
+
+        /* MAIN PANEL */
+        .panel{
+            position:relative;
+            z-index:2;
+
+            width:540px;
+            padding:40px;
+
+            border-radius:24px;
+
+            background:rgba(15,15,15,0.6);
+
+            border:1px solid rgba(255,255,255,0.05);
+
+            backdrop-filter:blur(30px);
+
+            box-shadow:
+                    0 0 80px rgba(0,240,255,0.08),
+                    inset 0 0 20px rgba(255,255,255,0.02);
+        }
+
+        /* BRAND */
+        .brand{
+            text-align:center;
+            margin-bottom:25px;
+        }
+
+        .logoCircle{
+            width:90px;
+            height:90px;
+
+            margin:auto;
+            margin-bottom:20px;
+
+            border-radius:50%;
+
+            background:linear-gradient(135deg,#00f0ff,#0059ff);
+
+            display:flex;
+            align-items:center;
+            justify-content:center;
+
+            font-size:34px;
+            font-weight:bold;
+
+            box-shadow:
+                    0 0 40px rgba(0,240,255,0.4),
+                    0 0 80px rgba(0,240,255,0.15);
+
+            animation:pulse 3s infinite;
+        }
+
+        @keyframes pulse{
+            0%{
+                transform:scale(1);
+            }
+            50%{
+                transform:scale(1.05);
+            }
+            100%{
+                transform:scale(1);
+            }
+        }
+
+        .title{
+            font-size:34px;
+            letter-spacing:2px;
+            margin-bottom:8px;
+        }
+
+        .subtitle{
+            opacity:0.6;
+            font-size:14px;
+        }
+
+        /* STATUS */
+        .status{
+            margin-top:30px;
+            text-align:center;
+            font-size:14px;
+            opacity:0.8;
+        }
+
+        /* PROGRESS */
+        .progressWrap{
+            margin-top:25px;
+        }
+
+        .progressBar{
+            width:100%;
+            height:10px;
+
+            background:rgba(255,255,255,0.05);
+
+            border-radius:999px;
+            overflow:hidden;
+        }
+
+        .progressFill{
+            width:0%;
+            height:100%;
+
+            border-radius:999px;
+
+            background:linear-gradient(90deg,#00f0ff,#0059ff);
+
+            box-shadow:
+                    0 0 25px rgba(0,240,255,0.5);
+
+            transition:0.25s ease;
+        }
+
+        .progressInfo{
+            display:flex;
+            justify-content:space-between;
+
+            margin-top:10px;
+
+            font-size:12px;
+            opacity:0.55;
+        }
+
+        /* MODULES */
+        .modules{
+            margin-top:30px;
+
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:12px;
+        }
+
+        .module{
+            padding:14px;
+
+            border-radius:14px;
+
+            background:rgba(255,255,255,0.03);
+
+            border:1px solid rgba(255,255,255,0.03);
+
+            transition:0.3s;
+        }
+
+        .module.active{
+            border-color:rgba(0,240,255,0.3);
+
+            box-shadow:
+                    0 0 25px rgba(0,240,255,0.08);
+        }
+
+        .moduleTitle{
+            font-size:13px;
+            margin-bottom:6px;
+        }
+
+        .moduleState{
+            font-size:11px;
+            opacity:0.6;
+        }
+
+        /* FOOTER */
+        .footer{
+            margin-top:25px;
+            text-align:center;
+            font-size:11px;
+            opacity:0.3;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="glow"></div>
+
+<div class="panel">
+
+    <div class="brand">
+        <div class="logoCircle">X</div>
+
+        <div class="title">BLACKSHIELD X</div>
+        <div class="subtitle">
+            Secure Browsing • Intelligent Foundation
+        </div>
+    </div>
+
+    <div class="status" id="statusText">
+        Initializing browser environment...
+    </div>
+
+    <div class="progressWrap">
+        <div class="progressBar">
+            <div class="progressFill" id="fill"></div>
+        </div>
+
+        <div class="progressInfo">
+            <span id="stageText">Preparing modules</span>
+            <span id="percentText">0%</span>
+        </div>
+    </div>
+
+    <div class="modules">
+
+        <div class="module active" id="m1">
+            <div class="moduleTitle">Browser Core</div>
+            <div class="moduleState">Loading...</div>
+        </div>
+
+        <div class="module" id="m2">
+            <div class="moduleTitle">Profile System</div>
+            <div class="moduleState">Waiting...</div>
+        </div>
+
+        <div class="module" id="m3">
+            <div class="moduleTitle">Session Engine</div>
+            <div class="moduleState">Waiting...</div>
+        </div>
+
+        <div class="module" id="m4">
+            <div class="moduleTitle">Update Service</div>
+            <div class="moduleState">Waiting...</div>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        BlackShield X • Startup Environment
+    </div>
+
+</div>
+
+<script>
+    let progress = 0;
+
+    const fill = document.getElementById("fill");
+    const percentText = document.getElementById("percentText");
+    const statusText = document.getElementById("statusText");
+    const stageText = document.getElementById("stageText");
+
+    const stages = [
+        {
+            progress:20,
+            text:"Loading browser core...",
+            stage:"Initializing Chromium"
+        },
+        {
+            progress:45,
+            text:"Loading user profile...",
+            stage:"Preparing persistent sessions"
+        },
+        {
+            progress:70,
+            text:"Restoring browser environment...",
+            stage:"Loading cache and cookies"
+        },
+        {
+            progress:95,
+            text:"Finalizing startup...",
+            stage:"Checking update services"
+        }
+    ];
+
+    function activateModule(index){
+        const modules = ["m1","m2","m3","m4"];
+
+        modules.forEach((m,i)=>{
+            const el = document.getElementById(m);
+
+            if(i <= index){
+                el.classList.add("active");
+                el.querySelector(".moduleState").innerText = "Ready";
+            }
+        });
+    }
+
+    function animate(){
+        progress += Math.random()*4;
+
+        if(progress > 100) progress = 100;
+
+        fill.style.width = progress + "%";
+
+        percentText.innerText =
+            Math.floor(progress) + "%";
+
+        stages.forEach((s,i)=>{
+            if(progress >= s.progress){
+                statusText.innerText = s.text;
+                stageText.innerText = s.stage;
+                activateModule(i);
+            }
+        });
+
+        if(progress < 100){
+            requestAnimationFrame(animate);
+        }else{
+            statusText.innerText =
+                "Launching BlackShield X";
+
+            stageText.innerText =
+                "Startup complete";
+        }
+    }
+
+    setTimeout(()=>{
+        animate();
+    },400);
+</script>
+
+</body>
+</html>
