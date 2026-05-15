@@ -4,924 +4,862 @@ const {
     BrowserView,
     ipcMain,
     Menu,
-    session
+    session,
+    shell
 } = require("electron");
 
-const updater = require(
-    "./updater/updater"
-);
-
-const path = require("path");
 const fs = require("fs");
+const path = require("path");
+const updater = require("./updater/updater");
+const integrity = require("./security/integrity");
+const recovery = require("./security/recovery");
 
-let mainWindow;
+/*
+ * Main-process architecture:
+ * - Owns the native Electron window, BrowserView tabs, persistent profile files,
+ *   privileged IPC handlers, update startup, and window controls.
+ * - Renderer code never receives Electron primitives directly; it talks through
+ *   the preload bridge and these narrow IPC channels.
+ */
 
-let tabs = [];
+const APP_ROOT = __dirname;
+const VIEWS_DIR = path.join(APP_ROOT, "views");
+const PRELOAD_PATH = path.join(APP_ROOT, "preload.js");
+const USER_DATA_DIR = path.join(app.getPath("appData"), "BlackShieldX");
+app.setPath("userData", USER_DATA_DIR);
 
-let activeTabId = null;
+const PROFILE_DIR = path.join(USER_DATA_DIR, "profile");
+const PARTITION = "persist:blackshieldx";
 
 const TABBAR_HEIGHT = 42;
 const TOPBAR_HEIGHT = 70;
-
-const TOTAL_TOP_HEIGHT =
-    TABBAR_HEIGHT + TOPBAR_HEIGHT;
-
-/* =========================================
-   PROFILE DIRECTORY
-========================================= */
-
-const profileDir = path.join(
-    __dirname,
-    "profile"
-);
-
-if (!fs.existsSync(profileDir)) {
-
-    fs.mkdirSync(profileDir, {
-        recursive: true
-    });
-}
-
-/* =========================================
-   CONFIG
-========================================= */
-
-const configPath = path.join(
-    profileDir,
-    "config.json"
-);
+const BROWSER_TOP_OFFSET = TABBAR_HEIGHT + TOPBAR_HEIGHT;
+const MAX_DRAWER_WIDTH = 420;
 
 const defaultConfig = {
-
-    searchEngine:
-        "duckduckgo",
-
-    performance:
-        "balanced",
-
-    autoUpdate:
-        true,
-
-    saveHistory:
-        true
+    searchEngine: "duckduckgo",
+    performance: "balanced",
+    autoUpdate: true,
+    saveHistory: true,
+    updateChannel: "latest"
 };
 
-function loadConfig() {
+const profileFiles = {
+    config: path.join(PROFILE_DIR, "config.json"),
+    history: path.join(PROFILE_DIR, "history.json"),
+    bookmarks: path.join(PROFILE_DIR, "bookmarks.json"),
+    downloads: path.join(PROFILE_DIR, "downloads.json")
+};
 
-    try {
+let mainWindow = null;
+let tabs = [];
+let activeTabId = null;
+let drawerWidth = 0;
+let downloadsListenerAttached = false;
+let integrityStatus = null;
+let testShutdownScheduled = false;
 
-        const raw =
-            fs.readFileSync(
-                configPath,
-                "utf8"
-            );
-
-        return JSON.parse(raw);
-
-    } catch {
-
-        fs.writeFileSync(
-
-            configPath,
-
-            JSON.stringify(
-                defaultConfig,
-                null,
-                2
-            )
-        );
-
-        return defaultConfig;
+function ensureProfile() {
+    if (!fs.existsSync(PROFILE_DIR)) {
+        fs.mkdirSync(PROFILE_DIR, { recursive: true });
     }
 }
 
-function saveConfig(cfg) {
+function migrateLegacyProfile() {
+    const legacyProfileDir = path.join(APP_ROOT, "profile");
 
-    fs.writeFileSync(
-
-        configPath,
-
-        JSON.stringify(
-            cfg,
-            null,
-            2
-        )
-    );
-}
-
-/* =========================================
-   HISTORY
-========================================= */
-
-const historyPath = path.join(
-    profileDir,
-    "history.json"
-);
-
-function loadHistory() {
-
-    try {
-
-        return JSON.parse(
-
-            fs.readFileSync(
-                historyPath,
-                "utf8"
-            )
-        );
-
-    } catch {
-
-        fs.writeFileSync(
-            historyPath,
-            "[]"
-        );
-
-        return [];
-    }
-}
-
-function saveHistory(url) {
-
-    const cfg =
-        loadConfig();
-
-    if (!cfg.saveHistory) {
+    if (!fs.existsSync(legacyProfileDir)) {
         return;
     }
 
-    let history =
-        loadHistory();
+    [
+        "config.json",
+        "history.json",
+        "bookmarks.json",
+        "downloads.json",
+        "session.json",
+        "module_versions.json"
+    ].forEach((fileName) => {
+        const source = path.join(legacyProfileDir, fileName);
+        const target = path.join(PROFILE_DIR, fileName);
 
-    history.unshift({
-
-        url,
-
-        time:
-            Date.now()
+        if (fs.existsSync(source) && !fs.existsSync(target)) {
+            fs.copyFileSync(source, target);
+        }
     });
-
-    history = history.slice(0, 100);
-
-    fs.writeFileSync(
-
-        historyPath,
-
-        JSON.stringify(
-            history,
-            null,
-            2
-        )
-    );
 }
 
-/* =========================================
-   BOOKMARKS
-========================================= */
+function clone(value) {
+    return JSON.parse(JSON.stringify(value));
+}
 
-const bookmarksPath = path.join(
-    profileDir,
-    "bookmarks.json"
-);
+function readJson(filePath, fallback) {
+    ensureProfile();
+
+    try {
+        const raw = fs.readFileSync(filePath, "utf8");
+        const parsed = JSON.parse(raw);
+        return parsed;
+    } catch {
+        const value = clone(fallback);
+        fs.writeFileSync(filePath, JSON.stringify(value, null, 2));
+        return value;
+    }
+}
+
+function writeJson(filePath, value) {
+    ensureProfile();
+    fs.writeFileSync(filePath, JSON.stringify(value, null, 2));
+}
+
+function loadConfig() {
+    return {
+        ...defaultConfig,
+        ...readJson(profileFiles.config, defaultConfig)
+    };
+}
+
+function saveConfig(config) {
+    writeJson(profileFiles.config, {
+        ...defaultConfig,
+        ...config
+    });
+}
+
+function loadHistory() {
+    return readJson(profileFiles.history, []);
+}
+
+function saveHistoryEntries(entries) {
+    writeJson(profileFiles.history, entries);
+}
 
 function loadBookmarks() {
-
-    try {
-
-        return JSON.parse(
-
-            fs.readFileSync(
-                bookmarksPath,
-                "utf8"
-            )
-        );
-
-    } catch {
-
-        fs.writeFileSync(
-            bookmarksPath,
-            "[]"
-        );
-
-        return [];
-    }
+    return readJson(profileFiles.bookmarks, []);
 }
 
-function saveBookmarks(data) {
-
-    fs.writeFileSync(
-
-        bookmarksPath,
-
-        JSON.stringify(
-            data,
-            null,
-            2
-        )
-    );
+function saveBookmarks(entries) {
+    writeJson(profileFiles.bookmarks, entries);
 }
-
-/* =========================================
-   DOWNLOADS
-========================================= */
-
-const downloadsPath = path.join(
-    profileDir,
-    "downloads.json"
-);
 
 function loadDownloads() {
-
-    try {
-
-        return JSON.parse(
-
-            fs.readFileSync(
-                downloadsPath,
-                "utf8"
-            )
-        );
-
-    } catch {
-
-        fs.writeFileSync(
-            downloadsPath,
-            "[]"
-        );
-
-        return [];
-    }
+    return readJson(profileFiles.downloads, []);
 }
 
-function saveDownloads(data) {
-
-    fs.writeFileSync(
-
-        downloadsPath,
-
-        JSON.stringify(
-            data,
-            null,
-            2
-        )
-    );
+function saveDownloads(entries) {
+    writeJson(profileFiles.downloads, entries);
 }
 
-/* =========================================
-   SEARCH ENGINE
-========================================= */
+function isHttpUrl(url) {
+    return /^https?:\/\//i.test(String(url || ""));
+}
+
+function isInternalFileUrl(url) {
+    const normalized = String(url || "").replace(/\\/g, "/");
+    return normalized.startsWith("file:///") && normalized.includes("/views/");
+}
+
+function isNewTabUrl(url) {
+    return isInternalFileUrl(url) && String(url).replace(/\\/g, "/").endsWith("/newtab.html");
+}
 
 function resolveURL(input) {
+    const value = String(input || "").trim();
 
-    const cfg =
-        loadConfig();
-
-    input = input.trim();
-
-    if (!input) {
-        return "about:blank";
+    if (!value) {
+        return null;
     }
 
-    const isSearch =
-
-        input.includes(" ") ||
-
-        !input.includes(".");
-
-    if (isSearch) {
-
-        const engines = {
-
-            google:
-                "https://www.google.com/search?q=",
-
-            duckduckgo:
-                "https://duckduckgo.com/?q=",
-
-            brave:
-                "https://search.brave.com/search?q=",
-
-            bing:
-                "https://www.bing.com/search?q="
-        };
-
-        const engine =
-
-            engines[cfg.searchEngine] ||
-
-            engines.duckduckgo;
-
-        return (
-            engine +
-            encodeURIComponent(input)
-        );
+    if (/^https?:\/\//i.test(value) || /^file:\/\//i.test(value)) {
+        return value;
     }
 
-    if (
+    const looksLikeDomain =
+        /^localhost(?::\d+)?(?:\/.*)?$/i.test(value) ||
+        /^(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?(?:\/.*)?$/.test(value) ||
+        (!/\s/.test(value) && value.includes("."));
 
-        !input.startsWith("http://") &&
-
-        !input.startsWith("https://")
-
-    ) {
-
-        return "https://" + input;
+    if (looksLikeDomain) {
+        return `https://${value}`;
     }
 
-    return input;
-}
-
-/* =========================================
-   ACTIVE TAB
-========================================= */
-
-function getActiveTab() {
-
-    return tabs.find(
-        tab => tab.id === activeTabId
-    );
-}
-
-/* =========================================
-   WINDOW
-========================================= */
-
-function createWindow() {
-
-    mainWindow =
-        new BrowserWindow({
-
-            width: 1400,
-            height: 900,
-
-            minWidth: 1000,
-            minHeight: 700,
-
-            frame: false,
-
-            backgroundColor:
-                "#000000",
-
-            icon: path.join(
-                __dirname,
-                "assets",
-                "icon.ico"
-            ),
-
-            webPreferences: {
-
-                preload: path.join(
-                    __dirname,
-                    "preload.js"
-                ),
-
-                contextIsolation: true,
-
-                nodeIntegration: false
-            }
-        });
-
-    Menu.setApplicationMenu(null);
-
-    mainWindow.loadFile(
-
-        path.join(
-            __dirname,
-            "views",
-            "index.html"
-        )
-    );
-
-    createTab();
-
-    mainWindow.on(
-        "resize",
-        updateBrowserBounds
-    );
-}
-
-/* =========================================
-   CREATE TAB
-========================================= */
-
-function createTab(url = null) {
-
-    const id =
-        Date.now().toString();
-
-    const view =
-        new BrowserView({
-
-            webPreferences: {
-
-                partition:
-                    "persist:blackshieldx",
-
-                contextIsolation:
-                    true,
-
-                nodeIntegration:
-                    false
-            }
-        });
-
-    const tab = {
-
-        id,
-
-        title:
-            "New Tab",
-
-        view
+    const engines = {
+        google: "https://www.google.com/search?q=",
+        duckduckgo: "https://duckduckgo.com/?q=",
+        brave: "https://search.brave.com/search?q=",
+        bing: "https://www.bing.com/search?q="
     };
 
-    tabs.push(tab);
-
-    activeTabId = id;
-
-    mainWindow.setBrowserView(
-        view
-    );
-
-    updateBrowserBounds();
-
-    if (url) {
-
-        view.webContents.loadURL(url);
-
-    } else {
-
-        view.webContents.loadFile(
-
-            path.join(
-                __dirname,
-                "views",
-                "newtab.html"
-            )
-        );
-    }
-
-    /* HISTORY */
-
-    view.webContents.on(
-
-        "did-navigate",
-
-        (event, url) => {
-
-            saveHistory(url);
-        }
-    );
-
-    /* DOWNLOADS */
-
-    view.webContents.session.on(
-
-        "will-download",
-
-        (event, item) => {
-
-            const file = {
-
-                name:
-                    item.getFilename(),
-
-                path:
-                    item.getSavePath(),
-
-                url:
-                    item.getURL(),
-
-                size:
-                    item.getTotalBytes(),
-
-                time:
-                    Date.now()
-            };
-
-            const downloads =
-                loadDownloads();
-
-            downloads.unshift(file);
-
-            saveDownloads(downloads);
-        }
-    );
-
-    /* TITLE */
-
-    view.webContents.on(
-
-        "page-title-updated",
-
-        (event, title) => {
-
-            tab.title = title;
-
-            sendTabsToRenderer();
-        }
-    );
-
-    sendTabsToRenderer();
+    const config = loadConfig();
+    const engine = engines[config.searchEngine] || engines.duckduckgo;
+    return engine + encodeURIComponent(value);
 }
 
-/* =========================================
-   SWITCH TAB
-========================================= */
+function getActiveTab() {
+    return tabs.find((tab) => tab.id === activeTabId) || null;
+}
+
+function getTabUrl(tab) {
+    if (!tab || tab.view.webContents.isDestroyed()) {
+        return "";
+    }
+
+    return tab.view.webContents.getURL();
+}
+
+function getActivePagePayload() {
+    const active = getActiveTab();
+
+    if (!active) {
+        return {
+            url: "",
+            title: "New Tab",
+            isInternal: true
+        };
+    }
+
+    const url = getTabUrl(active);
+
+    return {
+        url,
+        title: active.title || "New Tab",
+        isInternal: isInternalFileUrl(url)
+    };
+}
+
+function getTabsPayload() {
+    return {
+        tabs: tabs.map((tab) => ({
+            id: tab.id,
+            title: tab.title || "New Tab",
+            url: getTabUrl(tab)
+        })),
+        activeTabId
+    };
+}
+
+function sendToShell(channel, payload) {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+        return;
+    }
+
+    mainWindow.webContents.send(channel, payload);
+}
+
+function sendTabsToRenderer() {
+    sendToShell("tabs:updated", getTabsPayload());
+    sendToShell("navigation:active-page-updated", getActivePagePayload());
+}
+
+function getUpdaterOptions({ manual = false } = {}) {
+    const config = loadConfig();
+
+    return {
+        channel: config.updateChannel || "latest",
+        enableElectronUpdater: true,
+        enableModuleUpdater: app.isPackaged || manual || Boolean(process.env.BLACKSHIELD_MODULE_MANIFEST_URL)
+    };
+}
+
+function relayUpdaterState() {
+    updater.onStateChange((state) => {
+        sendToShell("updates:state", state);
+    });
+
+    integrity.onStateChange((state) => {
+        sendToShell("integrity:state", state);
+    });
+}
+
+function scheduleTestShutdown() {
+    if (testShutdownScheduled) {
+        return;
+    }
+
+    const quitAfterArg = process.argv.find((arg) => {
+        return String(arg || "").startsWith("--blackshield-test-quit-after=");
+    });
+    const argDelay = quitAfterArg
+        ? quitAfterArg.split("=").slice(1).join("=")
+        : "";
+    const switchDelay = app.commandLine.getSwitchValue("blackshield-test-quit-after");
+    const delay = Number(switchDelay || argDelay || process.env.BLACKSHIELD_TEST_QUIT_AFTER_MS || 0);
+
+    if (!delay || delay < 1000) {
+        return;
+    }
+
+    testShutdownScheduled = true;
+
+    setTimeout(() => {
+        BrowserWindow.getAllWindows().forEach((window) => {
+            if (!window.isDestroyed()) {
+                window.destroy();
+            }
+        });
+        app.exit(0);
+    }, delay);
+}
+
+function protectedModePayload() {
+    return integrityStatus || integrity.getIntegrityState();
+}
+
+function rejectIfProtected() {
+    if (integrity.isProtectedMode()) {
+        throw integrity.createProtectedServicesError();
+    }
+}
+
+function addHistoryEntry(url, title) {
+    const config = loadConfig();
+
+    if (!config.saveHistory || !isHttpUrl(url)) {
+        return;
+    }
+
+    const active = getActiveTab();
+
+    if (active && active.lastHistoryUrl === url) {
+        return;
+    }
+
+    if (active) {
+        active.lastHistoryUrl = url;
+    }
+
+    const history = loadHistory();
+    const entry = {
+        url,
+        title: title || url,
+        time: Date.now()
+    };
+
+    const withoutDuplicate = history.filter((item) => item && item.url !== url);
+    saveHistoryEntries([entry, ...withoutDuplicate].slice(0, 200));
+}
+
+function normalizeBookmark(bookmark) {
+    const url = String(bookmark && bookmark.url ? bookmark.url : "").trim();
+
+    if (!isHttpUrl(url)) {
+        return null;
+    }
+
+    return {
+        url,
+        title: String(bookmark.title || url).trim() || url,
+        time: Number(bookmark.time) || Date.now()
+    };
+}
+
+function createBrowserView(tab) {
+    const view = new BrowserView({
+        webPreferences: {
+            preload: PRELOAD_PATH,
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
+            webSecurity: true,
+            allowRunningInsecureContent: false,
+            partition: PARTITION
+        }
+    });
+
+    const webContents = view.webContents;
+
+    webContents.setWindowOpenHandler(({ url }) => {
+        createTab(url);
+        return { action: "deny" };
+    });
+
+    webContents.on("did-start-loading", sendTabsToRenderer);
+    webContents.on("did-stop-loading", sendTabsToRenderer);
+
+    webContents.on("page-title-updated", (_event, title) => {
+        tab.title = title || "New Tab";
+        sendTabsToRenderer();
+    });
+
+    webContents.on("did-navigate", (_event, url) => {
+        tab.title = isNewTabUrl(url) ? "New Tab" : (webContents.getTitle() || tab.title || "New Tab");
+        addHistoryEntry(url, tab.title);
+        sendTabsToRenderer();
+    });
+
+    webContents.on("did-navigate-in-page", (_event, url) => {
+        addHistoryEntry(url, webContents.getTitle() || tab.title);
+        sendTabsToRenderer();
+    });
+
+    webContents.on("did-finish-load", () => {
+        const url = webContents.getURL();
+        tab.title = isNewTabUrl(url) ? "New Tab" : (webContents.getTitle() || tab.title || "New Tab");
+        sendTabsToRenderer();
+    });
+
+    webContents.on("render-process-gone", (_event, details) => {
+        console.error("[BrowserView] Render process gone:", details.reason);
+    });
+
+    return view;
+}
+
+function updateBrowserBounds() {
+    const active = getActiveTab();
+
+    if (!active || !mainWindow || mainWindow.isDestroyed()) {
+        return;
+    }
+
+    const [width, height] = mainWindow.getContentSize();
+    const usableWidth = Math.max(320, width - drawerWidth);
+    const usableHeight = Math.max(240, height - BROWSER_TOP_OFFSET);
+
+    active.view.setBounds({
+        x: 0,
+        y: BROWSER_TOP_OFFSET,
+        width: usableWidth,
+        height: usableHeight
+    });
+}
+
+function attachActiveView(view) {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+        return;
+    }
+
+    mainWindow.setBrowserView(view);
+    updateBrowserBounds();
+}
+
+function createTab(initialUrl = null) {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+        return null;
+    }
+
+    const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const tab = {
+        id,
+        title: "New Tab",
+        view: null,
+        lastHistoryUrl: ""
+    };
+
+    tab.view = createBrowserView(tab);
+    tabs.push(tab);
+    activeTabId = id;
+    attachActiveView(tab.view);
+
+    const target = resolveURL(initialUrl);
+
+    if (target) {
+        tab.view.webContents.loadURL(target);
+    } else {
+        tab.view.webContents.loadFile(path.join(VIEWS_DIR, "newtab.html"));
+    }
+
+    sendTabsToRenderer();
+    return id;
+}
 
 function switchTab(id) {
-
-    const tab =
-        tabs.find(
-            t => t.id === id
-        );
+    const tab = tabs.find((item) => item.id === id);
 
     if (!tab) {
         return;
     }
 
     activeTabId = id;
-
-    mainWindow.setBrowserView(
-        tab.view
-    );
-
-    updateBrowserBounds();
-
+    attachActiveView(tab.view);
     sendTabsToRenderer();
 }
 
-/* =========================================
-   CLOSE TAB
-========================================= */
-
 function closeTab(id) {
-
-    const index =
-        tabs.findIndex(
-            t => t.id === id
-        );
+    const index = tabs.findIndex((tab) => tab.id === id);
 
     if (index === -1) {
         return;
     }
 
-    const tab =
-        tabs[index];
+    const [closed] = tabs.splice(index, 1);
 
-    tab.view.webContents.destroy();
-
-    tabs.splice(index, 1);
+    if (closed.view && !closed.view.webContents.isDestroyed()) {
+        closed.view.webContents.destroy();
+    }
 
     if (tabs.length === 0) {
-
         createTab();
-
         return;
     }
 
-    activeTabId =
-        tabs[0].id;
-
-    mainWindow.setBrowserView(
-        tabs[0].view
-    );
-
-    updateBrowserBounds();
+    if (activeTabId === id) {
+        const nextIndex = Math.min(index, tabs.length - 1);
+        activeTabId = tabs[nextIndex].id;
+        attachActiveView(tabs[nextIndex].view);
+    }
 
     sendTabsToRenderer();
 }
 
-/* =========================================
-   SEND TABS
-========================================= */
+function loadInActiveTab(input) {
+    const active = getActiveTab();
+    const target = resolveURL(input);
 
-function sendTabsToRenderer() {
-
-    const cleanTabs =
-        tabs.map(tab => ({
-
-            id: tab.id,
-
-            title: tab.title
-        }));
-
-    mainWindow.webContents.send(
-
-        "tabs-updated",
-
-        {
-
-            tabs: cleanTabs,
-
-            activeTabId
-        }
-    );
-}
-
-/* =========================================
-   RESIZE
-========================================= */
-
-function updateBrowserBounds() {
-
-    const active =
-        getActiveTab();
-
-    if (!active) {
+    if (!active || !target) {
         return;
     }
 
-    const bounds =
-        mainWindow.getBounds();
+    active.view.webContents.loadURL(target);
+}
 
-    active.view.setBounds({
+function attachDownloadsListener() {
+    if (downloadsListenerAttached) {
+        return;
+    }
 
-        x: 0,
+    downloadsListenerAttached = true;
 
-        y: TOTAL_TOP_HEIGHT,
+    session.fromPartition(PARTITION).on("will-download", (_event, item) => {
+        const startedAt = Date.now();
 
-        width:
-        bounds.width,
+        item.once("done", (_doneEvent, state) => {
+            const downloads = loadDownloads();
 
-        height:
-            bounds.height -
-            TOTAL_TOP_HEIGHT
+            downloads.unshift({
+                name: item.getFilename(),
+                path: item.getSavePath() || "",
+                url: item.getURL(),
+                size: item.getTotalBytes(),
+                state,
+                time: startedAt
+            });
+
+            saveDownloads(downloads.slice(0, 200));
+        });
     });
 }
 
-/* =========================================
-   NAVIGATION
-========================================= */
+function configureSecurity() {
+    const denyPermission = (_webContents, _permission, callback) => {
+        callback(false);
+    };
 
-ipcMain.on(
+    session.defaultSession.setPermissionRequestHandler(denyPermission);
+    session.fromPartition(PARTITION).setPermissionRequestHandler(denyPermission);
 
-    "load-url",
+    app.on("web-contents-created", (_event, contents) => {
+        contents.on("will-attach-webview", (event) => {
+            event.preventDefault();
+        });
+    });
+}
 
-    (event, input) => {
+async function createWindow() {
+    const iconPath = path.join(APP_ROOT, "assets", "icon.ico");
 
-        const active =
-            getActiveTab();
+    mainWindow = new BrowserWindow({
+        width: 1400,
+        height: 900,
+        minWidth: 1000,
+        minHeight: 700,
+        frame: false,
+        show: false,
+        backgroundColor: "#050505",
+        ...(fs.existsSync(iconPath) ? { icon: iconPath } : {}),
+        webPreferences: {
+            preload: PRELOAD_PATH,
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
+            webSecurity: true,
+            allowRunningInsecureContent: false,
+            devTools: !app.isPackaged
+        }
+    });
 
-        if (!active) {
+    Menu.setApplicationMenu(null);
+
+    mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+    mainWindow.webContents.on("will-navigate", (event, url) => {
+        if (!isInternalFileUrl(url)) {
+            event.preventDefault();
+        }
+    });
+
+    mainWindow.once("ready-to-show", () => {
+        mainWindow.show();
+    });
+
+    mainWindow.on("resize", updateBrowserBounds);
+    mainWindow.on("maximize", () => sendToShell("window:maximized", true));
+    mainWindow.on("unmaximize", () => sendToShell("window:maximized", false));
+    mainWindow.on("closed", () => {
+        mainWindow = null;
+        tabs = [];
+        activeTabId = null;
+    });
+
+    await mainWindow.loadFile(path.join(VIEWS_DIR, "index.html"));
+    createTab();
+}
+
+async function createProtectedWindow() {
+    const iconPath = path.join(APP_ROOT, "assets", "icon.ico");
+
+    mainWindow = new BrowserWindow({
+        width: 1200,
+        height: 820,
+        minWidth: 900,
+        minHeight: 680,
+        frame: false,
+        show: false,
+        backgroundColor: "#050505",
+        ...(fs.existsSync(iconPath) ? { icon: iconPath } : {}),
+        webPreferences: {
+            preload: PRELOAD_PATH,
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
+            webSecurity: true,
+            allowRunningInsecureContent: false,
+            devTools: !app.isPackaged
+        }
+    });
+
+    Menu.setApplicationMenu(null);
+
+    mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+    mainWindow.webContents.on("will-navigate", (event, url) => {
+        if (!isInternalFileUrl(url)) {
+            event.preventDefault();
+        }
+    });
+
+    mainWindow.once("ready-to-show", () => {
+        mainWindow.show();
+        sendToShell("integrity:state", protectedModePayload());
+    });
+
+    mainWindow.on("maximize", () => sendToShell("window:maximized", true));
+    mainWindow.on("unmaximize", () => sendToShell("window:maximized", false));
+    mainWindow.on("closed", () => {
+        mainWindow = null;
+    });
+
+    await mainWindow.loadFile(path.join(VIEWS_DIR, "protected-mode.html"));
+}
+
+function registerIpc() {
+    ipcMain.on("navigation:load-url", (_event, input) => {
+        if (integrity.isProtectedMode()) {
             return;
         }
 
-        const url =
-            resolveURL(input);
+        loadInActiveTab(input);
+    });
 
-        active.view.webContents.loadURL(
-            url
-        );
-    }
-);
+    ipcMain.handle("navigation:get-active-page", () => getActivePagePayload());
 
-/* =========================================
-   TABS IPC
-========================================= */
-
-ipcMain.on(
-    "new-tab",
-    () => {
+    ipcMain.on("tabs:new", () => {
+        if (integrity.isProtectedMode()) {
+            return;
+        }
 
         createTab();
-    }
-);
+    });
 
-ipcMain.on(
-    "switch-tab",
-    (event, id) => {
+    ipcMain.on("tabs:switch", (_event, id) => {
+        if (integrity.isProtectedMode()) {
+            return;
+        }
 
         switchTab(id);
-    }
-);
+    });
 
-ipcMain.on(
-    "close-tab",
-    (event, id) => {
+    ipcMain.on("tabs:close", (_event, id) => {
+        if (integrity.isProtectedMode()) {
+            return;
+        }
 
         closeTab(id);
-    }
-);
+    });
 
-/* =========================================
-   SETTINGS
-========================================= */
+    ipcMain.handle("tabs:get", () => getTabsPayload());
 
-ipcMain.handle(
+    ipcMain.on("ui:set-drawer-width", (_event, width) => {
+        const numericWidth = Number(width) || 0;
+        drawerWidth = Math.max(0, Math.min(MAX_DRAWER_WIDTH, numericWidth));
+        updateBrowserBounds();
+    });
 
-    "get-config",
+    ipcMain.handle("settings:get", () => loadConfig());
 
-    () => {
+    ipcMain.handle("settings:set", (_event, config) => {
+        rejectIfProtected();
 
-        return loadConfig();
-    }
-);
-
-ipcMain.on(
-
-    "set-config",
-
-    (event, cfg) => {
-
-        const updated = {
-
+        const nextConfig = {
             ...loadConfig(),
-
-            ...cfg
+            ...(config && typeof config === "object" ? config : {})
         };
 
-        saveConfig(updated);
-    }
-);
+        saveConfig(nextConfig);
+        return nextConfig;
+    });
 
-/* =========================================
-   HISTORY IPC
-========================================= */
+    ipcMain.handle("privacy:clear-cache", async () => {
+        rejectIfProtected();
 
-ipcMain.handle(
-
-    "get-history",
-
-    () => {
-
-        return loadHistory();
-    }
-);
-
-/* =========================================
-   BOOKMARKS IPC
-========================================= */
-
-ipcMain.handle(
-
-    "get-bookmarks",
-
-    () => {
-
-        return loadBookmarks();
-    }
-);
-
-ipcMain.on(
-
-    "add-bookmark",
-
-    (event, bookmark) => {
-
-        const data =
-            loadBookmarks();
-
-        data.unshift(bookmark);
-
-        saveBookmarks(data);
-    }
-);
-
-/* =========================================
-   DOWNLOADS IPC
-========================================= */
-
-ipcMain.handle(
-
-    "get-downloads",
-
-    () => {
-
-        return loadDownloads();
-    }
-);
-
-/* =========================================
-   CACHE
-========================================= */
-
-ipcMain.handle(
-
-    "clear-cache",
-
-    async () => {
-
-        const ses =
-            session.fromPartition(
-                "persist:blackshieldx"
-            );
-
-        await ses.clearCache();
-
+        await session.fromPartition(PARTITION).clearCache();
         return true;
-    }
-);
+    });
 
-/* =========================================
-   COOKIES
-========================================= */
+    ipcMain.handle("privacy:clear-cookies", async () => {
+        rejectIfProtected();
 
-ipcMain.handle(
-
-    "clear-cookies",
-
-    async () => {
-
-        const ses =
-            session.fromPartition(
-                "persist:blackshieldx"
-            );
-
-        await ses.clearStorageData({
-
-            storages: [
-                "cookies"
-            ]
+        await session.fromPartition(PARTITION).clearStorageData({
+            storages: ["cookies"]
         });
+        return true;
+    });
+
+    ipcMain.handle("history:get", () => loadHistory());
+
+    ipcMain.handle("bookmarks:get", () => loadBookmarks());
+
+    ipcMain.handle("bookmarks:add", (_event, bookmark) => {
+        rejectIfProtected();
+
+        const normalized = normalizeBookmark(bookmark);
+
+        if (!normalized) {
+            return null;
+        }
+
+        const existing = loadBookmarks().filter((entry) => entry && entry.url !== normalized.url);
+        const next = [normalized, ...existing].slice(0, 200);
+        saveBookmarks(next);
+        return normalized;
+    });
+
+    ipcMain.handle("bookmarks:remove", (_event, url) => {
+        rejectIfProtected();
+
+        const next = loadBookmarks().filter((entry) => entry && entry.url !== url);
+        saveBookmarks(next);
+        return next;
+    });
+
+    ipcMain.handle("downloads:get", () => loadDownloads());
+
+    ipcMain.handle("updates:check", async () => {
+        rejectIfProtected();
+
+        return updater.startUpdater(getUpdaterOptions({
+            manual: true
+        }));
+    });
+
+    ipcMain.handle("updates:get-state", () => updater.getUpdateState());
+
+    ipcMain.on("updates:install-downloaded", () => {
+        if (integrity.isProtectedMode()) {
+            return;
+        }
+
+        updater.installDownloadedUpdate();
+    });
+
+    ipcMain.handle("integrity:get-state", () => protectedModePayload());
+
+    ipcMain.handle("integrity:repair", async () => {
+        integrity.quarantineManagedRuntime();
+        return recovery.beginRepairInstall();
+    });
+
+    ipcMain.handle("integrity:download-repair", async () => {
+        integrity.quarantineManagedRuntime();
+        return recovery.downloadOfficialInstaller();
+    });
+
+    ipcMain.handle("integrity:open-profile", async () => {
+        const result = await shell.openPath(app.getPath("userData"));
+
+        if (result) {
+            throw new Error(result);
+        }
 
         return true;
-    }
-);
+    });
 
-/* =========================================
-   WINDOW CONTROLS
-========================================= */
+    ipcMain.on("window:minimize", () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.minimize();
+        }
+    });
 
-ipcMain.on(
+    ipcMain.on("window:maximize", () => {
+        if (!mainWindow || mainWindow.isDestroyed()) {
+            return;
+        }
 
-    "win-min",
-
-    () => {
-
-        mainWindow.minimize();
-    }
-);
-
-ipcMain.on(
-
-    "win-max",
-
-    () => {
-
-        if (
-            mainWindow.isMaximized()
-        ) {
-
+        if (mainWindow.isMaximized()) {
             mainWindow.unmaximize();
-
         } else {
-
             mainWindow.maximize();
         }
-    }
-);
+    });
 
-ipcMain.on(
-
-    "win-close",
-
-    () => {
-
-        mainWindow.close();
-    }
-);
-
-/* =========================================
-   START
-========================================= */
-
-app.whenReady().then(() => {
-
-    updater.startUpdater();
-
-    createWindow();
-
-    app.on(
-
-        "activate",
-
-        () => {
-
-            if (
-                BrowserWindow
-                    .getAllWindows()
-                    .length === 0
-            ) {
-
-                createWindow();
-            }
+    ipcMain.on("window:close", () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.close();
         }
-    );
+    });
+}
+
+async function start() {
+    scheduleTestShutdown();
+    ensureProfile();
+    migrateLegacyProfile();
+    configureSecurity();
+    attachDownloadsListener();
+    relayUpdaterState();
+    registerIpc();
+
+    integrityStatus = await integrity.verifyStartupIntegrity();
+
+    if (integrity.isProtectedMode()) {
+        await createProtectedWindow();
+        return;
+    }
+
+    await createWindow();
+
+    if (loadConfig().autoUpdate) {
+        updater.startUpdater(getUpdaterOptions()).catch((error) => {
+            console.warn("[Updater] Startup update check failed:", error.message);
+        });
+    }
+}
+
+app.whenReady().then(start).catch((error) => {
+    console.error("[Main] Startup failed:", error);
 });
 
-app.on(
+app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+        const factory = integrity.isProtectedMode()
+            ? createProtectedWindow
+            : createWindow;
 
-    "window-all-closed",
-
-    () => {
-
-        if (
-            process.platform !==
-            "darwin"
-        ) {
-
-            app.quit();
-        }
+        factory().catch((error) => {
+            console.error("[Main] Failed to recreate window:", error);
+        });
     }
-);
+});
+
+app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") {
+        app.quit();
+    }
+});

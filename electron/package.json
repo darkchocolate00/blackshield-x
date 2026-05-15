@@ -4,58 +4,94 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder",
-    "release": "electron-builder --publish=always"
+    "start:dist": "node ../scripts/start-dist.js",
+    "installer:dev": "electron installer/installer-main.js",
+    "installer:dist": "node ../scripts/build-custom-installer.js",
+    "integrity:manifest": "node ../scripts/generate-integrity-manifest.js",
+    "integrity:sign": "node ../scripts/prepare-signed-integrity.js",
+    "runtime:zip": "node ../scripts/package-runtime.js",
+    "app:dist": "node ../scripts/build-dist.js",
+    "dist": "node ../scripts/build-release.js",
+    "release": "electron-builder --publish=always",
+    "release:latest": "electron-builder --publish=always -c.publish.channel=latest",
+    "release:beta": "electron-builder --publish=always -c.publish.channel=beta"
   },
   "build": {
     "appId": "com.blackshieldx.app",
     "productName": "BlackShield X",
+    "generateUpdatesFilesForAllChannels": true,
+    "electronUpdaterCompatibility": ">=2.16",
     "directories": {
       "output": "dist"
     },
     "files": [
       "**/*",
+      "!dist/**",
+      "!out/**",
+      "!updates/**",
+      "!modules/**",
+      "!installer/runtime/**",
+      "!security/local-signing/**",
+      "!profile/*.json",
+      "!*.log",
+      "!**/*.zip",
+      "!**/*.sha256",
       "!node_modules/*/{README.md,README,readme.md}",
       "!node_modules/*/{test,__tests__,tests}",
       "!**/*.map"
     ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "darkchocolate00",
+        "repo": "blackshield-x",
+        "channel": "latest",
+        "publishAutoUpdate": true,
+        "releaseType": "draft"
+      }
+    ],
+    "extraMetadata": {
+      "blackshield": {
+        "updateChannel": "latest",
+        "moduleManifestUrl": "https://github.com/darkchocolate00/blackshield-x/releases/latest/download/module-manifest.json",
+        "integrityPublicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEApRvCCn/emYQ1U2bhA2+wVJ/cSUCKyQRu0Kn0VU3iBtw=\n-----END PUBLIC KEY-----\n"
+      }
+    },
     "extraResources": [
       {
-        "from": "python",
-        "to": "python",
+        "from": "../python-engine/dist",
+        "to": "python-engine",
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "security/integrity-manifest.json",
+        "to": "integrity/integrity-manifest.json"
       }
     ],
-    "artifactName": "${productName}-Setup-${version}.${ext}",
-    "publish": {
-      "provider": "github",
-      "owner": "darkchocolate00",
-      "repo": "blackshield-x"
-    },
     "win": {
-      "target": "nsis",
-      "icon": "assets/icon.ico"
+      "target": [
+        "nsis",
+        "portable"
+      ]
     },
     "nsis": {
+      "artifactName": "BlackShield-X-Setup-${version}.${ext}",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "installerIcon": "assets/icon.ico",
-      "uninstallerIcon": "assets/icon.ico",
-      "installerHeader": "assets/installerHeader.bmp",
-      "installerSidebar": "assets/installerSidebar.bmp"
+      "createStartMenuShortcut": true
+    },
+    "portable": {
+      "artifactName": "BlackShield-X-Portable-${version}.${ext}"
     },
     "mac": {
-      "target": "dmg",
-      "icon": "assets/icon.icns"
+      "target": "dmg"
     },
     "linux": {
-      "target": "AppImage",
-      "icon": "assets"
+      "target": "AppImage"
     }
   },
   "dependencies": {

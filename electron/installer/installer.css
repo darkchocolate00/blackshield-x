@@ -1,0 +1,249 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    overflow: hidden;
+    background: radial-gradient(circle at 20% 10%, #172030, #050505 54%);
+    color: #f8f5ef;
+    font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+.particles {
+    position: fixed;
+    inset: 0;
+    opacity: 0.35;
+    background:
+            radial-gradient(circle at 18% 24%, rgba(101,171,255,0.28), transparent 18%),
+            radial-gradient(circle at 82% 76%, rgba(255,216,163,0.18), transparent 18%);
+    filter: blur(18px);
+    animation: floatParticles 10s ease-in-out infinite alternate;
+}
+
+@keyframes floatParticles {
+    from {
+        transform: translate3d(-10px, -8px, 0);
+    }
+
+    to {
+        transform: translate3d(14px, 16px, 0);
+    }
+}
+
+.installerShell {
+    position: relative;
+    z-index: 2;
+    width: min(920px, calc(100vw - 40px));
+    height: min(660px, calc(100vh - 40px));
+    margin: 20px auto;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    background: rgba(10,10,10,0.7);
+    box-shadow: 0 30px 100px rgba(0,0,0,0.5);
+    backdrop-filter: blur(28px);
+}
+
+.topLine,
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 26px;
+}
+
+.eyebrow {
+    margin-bottom: 6px;
+    color: rgba(248,245,239,0.45);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.brand {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.closeBtn {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.flow {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 26px;
+    padding: 16px 26px;
+}
+
+.steps {
+    display: grid;
+    gap: 10px;
+    align-content: center;
+}
+
+.step {
+    height: 42px;
+    border: 0;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.045);
+    color: rgba(248,245,239,0.56);
+    text-align: left;
+    padding: 0 14px;
+}
+
+.step.active {
+    background: rgba(248,245,239,0.14);
+    color: #f8f5ef;
+}
+
+.screen {
+    display: none;
+    align-self: center;
+    animation: screenIn 0.38s ease both;
+}
+
+.screen.active {
+    display: block;
+}
+
+@keyframes screenIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+        filter: blur(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+.hand {
+    margin-bottom: 18px;
+    color: #f8d8ad;
+    font-family: "Segoe Print", "Ink Free", cursive;
+    font-size: 42px;
+}
+
+h1,
+h2 {
+    max-width: 620px;
+    margin: 0;
+    font-size: 48px;
+    line-height: 1.02;
+    letter-spacing: 0;
+}
+
+h2 {
+    font-size: 38px;
+}
+
+p {
+    max-width: 560px;
+    margin: 22px 0 0;
+    color: rgba(248,245,239,0.62);
+    line-height: 1.7;
+}
+
+.pathRow {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
+}
+
+#installPath {
+    flex: 1;
+    height: 48px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    outline: 0;
+    background: rgba(255,255,255,0.06);
+    color: #ffffff;
+    padding: 0 14px;
+}
+
+#choosePathBtn,
+.primary,
+.secondary {
+    min-width: 122px;
+    height: 46px;
+    border: 0;
+    border-radius: 14px;
+    cursor: pointer;
+}
+
+#choosePathBtn,
+.secondary {
+    background: rgba(255,255,255,0.08);
+    color: #ffffff;
+}
+
+.primary {
+    background: #f8f5ef;
+    color: #050505;
+    font-weight: 700;
+}
+
+.statusLine {
+    min-height: 20px;
+    margin-top: 16px;
+    color: rgba(248,245,239,0.58);
+    font-size: 13px;
+}
+
+.componentRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: min(520px, 100%);
+    min-height: 48px;
+    margin-top: 12px;
+    padding: 0 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.055);
+}
+
+.componentRow input {
+    width: 18px;
+    height: 18px;
+}
+
+.progressTrack {
+    width: min(560px, 100%);
+    height: 10px;
+    margin-top: 28px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+}
+
+.progressFill {
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #f8d8ad, #8dbbff);
+    transition: width 0.25s ease;
+}

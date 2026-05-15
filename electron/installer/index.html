@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlackShield X Installer</title>
+    <link rel="stylesheet" href="installer.css">
+</head>
+
+<body>
+<div class="particles"></div>
+<div class="installerShell">
+    <header class="topLine">
+        <div>
+            <div class="eyebrow">Official BlackShield Platform</div>
+            <div class="brand">BlackShield X</div>
+        </div>
+
+        <button id="closeBtn" class="closeBtn" type="button">&times;</button>
+    </header>
+
+    <main class="flow">
+        <aside class="steps">
+            <button class="step active" data-step="0" type="button">Splash</button>
+            <button class="step" data-step="1" type="button">Welcome</button>
+            <button class="step" data-step="2" type="button">Path</button>
+            <button class="step" data-step="3" type="button">Components</button>
+            <button class="step" data-step="4" type="button">Install</button>
+            <button class="step" data-step="5" type="button">Complete</button>
+        </aside>
+
+        <section class="screen active" data-screen="0">
+            <div class="hand">crafted recovery</div>
+            <h1>Secure runtime installation, without touching your profile.</h1>
+            <p>BlackShield X installs into the protected runtime folder and reconnects your preserved user data.</p>
+        </section>
+
+        <section class="screen" data-screen="1">
+            <div class="hand">welcome</div>
+            <h2>Install, repair, or reinstall the official BlackShield runtime.</h2>
+            <p>The installer can replace corrupted runtime files while preserving bookmarks, history, settings, and sessions.</p>
+        </section>
+
+        <section class="screen" data-screen="2">
+            <div class="hand">choose a home</div>
+            <h2>Installation path</h2>
+            <div class="pathRow">
+                <input id="installPath" value="C:\Program Files\BlackShieldX">
+                <button id="choosePathBtn" type="button">Browse</button>
+            </div>
+            <div id="pathStatus" class="statusLine"></div>
+        </section>
+
+        <section class="screen" data-screen="3">
+            <div class="hand">components</div>
+            <h2>Install components</h2>
+            <label class="componentRow">
+                <input id="runtimeComponent" type="checkbox" checked disabled>
+                Electron Browser Runtime
+            </label>
+            <label class="componentRow">
+                <input id="pythonComponent" type="checkbox" checked>
+                Python Integrity Service
+            </label>
+            <label class="componentRow">
+                <input id="rustComponent" type="checkbox" checked>
+                Rust Core Support
+            </label>
+            <label class="componentRow">
+                <input id="profileReconnect" type="checkbox" checked disabled>
+                Reconnect preserved profile
+            </label>
+        </section>
+
+        <section class="screen" data-screen="4">
+            <div class="hand">installing</div>
+            <h2 id="installTitle">Ready to install</h2>
+            <div class="progressTrack">
+                <div id="progressFill" class="progressFill"></div>
+            </div>
+            <div id="progressText" class="statusLine">Waiting to begin.</div>
+        </section>
+
+        <section class="screen" data-screen="5">
+            <div class="hand">complete</div>
+            <h2>BlackShield X is ready.</h2>
+            <p id="completeText">Official runtime files were installed and your profile remains connected.</p>
+        </section>
+    </main>
+
+    <footer class="actions">
+        <button id="backBtn" class="secondary" type="button">Back</button>
+        <button id="nextBtn" class="primary" type="button">Continue</button>
+    </footer>
+</div>
+
+<script src="installer-renderer.js"></script>
+</body>
+</html>

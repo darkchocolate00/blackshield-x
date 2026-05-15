@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "product": "BlackShield X",
+  "integrityId": "bsx-20260515131629",
+  "buildSignature": "local-signed-build",
+  "buildChannel": "latest",
+  "hashAlgorithm": "sha256",
+  "signatureAlgorithm": "ed25519",
+  "signed": true,
+  "signature": "AaXRQDCUBy0kPNJ3J6vXXqd9sz4i6MmZv32R3G4lcTWHqZFRYavXe2X661OXyZaDTNSbJEGDI02YGPW41WsGCA==",
+  "backendTrust": {
+    "required": false,
+    "tokenSha256": ""
+  },
+  "files": [
+    {
+      "root": "app",
+      "path": "installer/index.html",
+      "sha256": "a71a18484049d5d60062fed71e61ae7a08f567e7deffcca77775e63557e832ce"
+    },
+    {
+      "root": "app",
+      "path": "installer/installer-main.js",
+      "sha256": "89a5261072c45d023bf8b07a9a199339c1954214c259982f03ecfa2a15ca57a5"
+    },
+    {
+      "root": "app",
+      "path": "installer/installer-preload.js",
+      "sha256": "269089413dbfdcff60d4c8ecd5790cb406a204ce9f6a57e292ae48b2d7b1476d"
+    },
+    {
+      "root": "app",
+      "path": "installer/installer-renderer.js",
+      "sha256": "73e1874e92437834fcd014e4648b4ee3851c9334522fa730c985262c3ce5e1f3"
+    },
+    {
+      "root": "app",
+      "path": "installer/installer.css",
+      "sha256": "f3cba509f26268c314ce86750669b0977538ec90b1d0f025f51abb76b0c09328"
+    },
+    {
+      "root": "app",
+      "path": "main.js",
+      "sha256": "a72e1207fb3f709983aff75c63c29f235d6c4d9355d6ff940b04b48987fed9a5"
+    },
+    {
+      "root": "app",
+      "path": "package.json",
+      "sha256": "61df3a7ef9fb95944ca415dedd2955674c74c8e3ea8a70d3801e2aeb4cea091d"
+    },
+    {
+      "root": "app",
+      "path": "preload.js",
+      "sha256": "847332468a764a1fa964e5ed256dfa52961de144157f47dafdb12917d0b44375"
+    },
+    {
+      "root": "app",
+      "path": "renderer/renderer.js",
+      "sha256": "077b0419ecbe3aa0f75672827d213a381162386941b3322d85996425fae001ef"
+    },
+    {
+      "root": "app",
+      "path": "security/integrity.js",
+      "sha256": "04d4716435fe7a77fa015a9477c1cddf4b6d2f1c4a42cc59d924ad0f72ede565"
+    },
+    {
+      "root": "app",
+      "path": "security/recovery.js",
+      "sha256": "cbb8aec1dda2c4806a2438200c8df0cbc06f976065ca253380c70b6ecc3ff432"
+    },
+    {
+      "root": "app",
+      "path": "styles/newtab.css",
+      "sha256": "4d5990a04f60c964099cb0a111044fc16f935228cd91430bc88fdcf933c5ec60"
+    },
+    {
+      "root": "app",
+      "path": "styles/protected-mode.css",
+      "sha256": "f47f4a111ae542eb11fe0437779a0832aab3568780cadf0aa36f5be612c145f1"
+    },
+    {
+      "root": "app",
+      "path": "styles/settings.css",
+      "sha256": "46f8770e41dcd1ded0364d1689fc6d1a4fa44998159154addc747e167753782d"
+    },
+    {
+      "root": "app",
+      "path": "styles/styles.css",
+      "sha256": "878ac9fec4f91cfdd37c994659dd2af93308ad325c5deca80624dab17e82cbb2"
+    },
+    {
+      "root": "app",
+      "path": "styles/tabs.css",
+      "sha256": "ac39ed57688b287a00ba95afad363eb2b1c863654494b1ef5e5a3c0350574eb1"
+    },
+    {
+      "root": "app",
+      "path": "updater/updater.js",
+      "sha256": "15233dad704e4b5291cab73092e5a6285c2619452e8567f474697dda8b8afab7"
+    },
+    {
+      "root": "app",
+      "path": "views/downloads.html",
+      "sha256": "221e78e467f76b3690c55ff99c8530e8cf4b894b7c1c321147f6743695e144ec"
+    },
+    {
+      "root": "app",
+      "path": "views/index.html",
+      "sha256": "de1a69464b7c2f47fc065b81b297074909b6bcac7e6c8a5f5c03a5ec44f6d59c"
+    },
+    {
+      "root": "app",
+      "path": "views/newtab.html",
+      "sha256": "f06b36eec49e255903a7a3cd0200d14b6b709f97287b5ec37b8119c2b569b7a2"
+    },
+    {
+      "root": "app",
+      "path": "views/protected-mode.html",
+      "sha256": "597732ac46f92958c7634cf43cec387bbacebb14f44c46597cd3654d6553b294"
+    },
+    {
+      "root": "resources",
+      "path": "python-engine/engine.exe",
+      "sha256": "6181b0c328f7074af3635cdb909070e383e3963d248e2a8294c5e67a79afd6f6",
+      "optional": true
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+#tabBar {
+    position: relative;
+    z-index: 60;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+    padding: 0 10px;
+    background: #080808;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+#tabsContainer {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+#tabsContainer::-webkit-scrollbar {
+    display: none;
+}
+
+.tab {
+    min-width: 180px;
+    max-width: 240px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 8px 0 10px;
+    border-radius: 10px;
+    background: #111111;
+    border: 1px solid rgba(255,255,255,0.03);
+    transition: background 0.2s ease, border-color 0.2s ease;
+    user-select: none;
+}
+
+.tab:hover {
+    background: #161616;
+}
+
+.activeTab {
+    background: #1a1a1a;
+    border-color: rgba(255,255,255,0.08);
+}
+
+.tabTitle {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: rgba(255,255,255,0.86);
+    cursor: pointer;
+    font-size: 12px;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.closeTabBtn {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    border: 0;
+    outline: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    font-size: 11px;
+    line-height: 20px;
+    padding: 0;
+}
+
+.closeTabBtn:hover {
+    background: #2b2b2b;
+}
+
+#newTabBtn {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    border: 0;
+    outline: 0;
+    border-radius: 10px;
+    background: #151515;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    font-size: 18px;
+    line-height: 32px;
+    padding: 0;
+}
+
+#newTabBtn:hover {
+    background: #232323;
+}

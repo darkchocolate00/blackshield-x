@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    >
+    <title>BlackShield X Integrity Warning</title>
+    <link rel="stylesheet" href="../styles/protected-mode.css">
+</head>
+
+<body data-view="protected">
+
+<div class="grain"></div>
+<div class="glow glowOne"></div>
+<div class="glow glowTwo"></div>
+
+<main class="integrityStage">
+    <section class="identity">
+        <div class="licenseMark">Official BlackShield Identity</div>
+        <div class="brand">BlackShield X</div>
+    </section>
+
+    <section class="warningCopy">
+        <div class="handwritten">Tamper activity detected.</div>
+
+        <h1>
+            This runtime no longer matches official BlackShield X integrity signatures.
+        </h1>
+
+        <p>
+            Protected services were disabled. Your bookmarks, history, settings, and sessions remain preserved in your user profile.
+        </p>
+    </section>
+
+    <section class="integrityCard">
+        <div class="metaGrid">
+            <div>
+                <span>Build signature</span>
+                <strong id="buildSignature">unknown</strong>
+            </div>
+
+            <div>
+                <span>Integrity ID</span>
+                <strong id="integrityId">pending</strong>
+            </div>
+
+            <div>
+                <span>Protected services</span>
+                <strong>disabled</strong>
+            </div>
+
+            <div>
+                <span>User profile</span>
+                <strong>preserved</strong>
+            </div>
+        </div>
+
+        <div id="integrityReason" class="reasonText">
+            Runtime verification failed.
+        </div>
+
+        <div id="repairStatus" class="repairStatus" aria-live="polite"></div>
+
+        <div class="actions">
+            <button id="repairInstallBtn" class="primaryAction" type="button">
+                Repair / Reinstall BlackShield X
+            </button>
+
+            <button id="downloadRepairBtn" class="secondaryAction" type="button">
+                Download repair installer
+            </button>
+
+            <button id="openProfileBtn" class="quietAction" type="button">
+                Open preserved profile
+            </button>
+        </div>
+    </section>
+
+    <section class="detailsPanel">
+        <div class="detailsTitle">Integrity notes</div>
+        <div id="integrityDetails" class="detailsList"></div>
+    </section>
+</main>
+
+<div class="windowControls">
+    <button id="winMinBtn" class="controlBtn" type="button" aria-label="Minimize">-</button>
+    <button id="winCloseBtn" class="controlBtn closeBtn" type="button" aria-label="Close">&times;</button>
+</div>
+
+<script src="../renderer/renderer.js" defer></script>
+</body>
+</html>

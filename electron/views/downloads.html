@@ -1,206 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <title>
-        Downloads
-    </title>
-
-    <style>
-
-        *{
-            box-sizing:border-box;
-        }
-
-        body{
-
-            margin:0;
-
-            background:#050505;
-
-            color:white;
-
-            font-family:
-                    "Segoe UI",
-                    sans-serif;
-
-            padding:24px;
-        }
-
-        /* =====================================
-           HEADER
-        ====================================== */
-
-        .header{
-
-            display:flex;
-
-            align-items:center;
-
-            justify-content:space-between;
-
-            margin-bottom:24px;
-        }
-
-        .title{
-
-            font-size:32px;
-
-            font-weight:600;
-        }
-
-        .subtitle{
-
-            opacity:0.45;
-
-            margin-top:6px;
-
-            font-size:13px;
-        }
-
-        /* =====================================
-           DOWNLOADS LIST
-        ====================================== */
-
-        #downloads{
-
-            display:flex;
-
-            flex-direction:column;
-
-            gap:14px;
-        }
-
-        /* =====================================
-           DOWNLOAD CARD
-        ====================================== */
-
-        .download{
-
-            background:#111111;
-
-            border:
-                    1px solid
-                    rgba(255,255,255,0.04);
-
-            border-radius:18px;
-
-            padding:18px;
-
-            transition:0.2s;
-        }
-
-        .download:hover{
-
-            background:#171717;
-        }
-
-        /* =====================================
-           FILE NAME
-        ====================================== */
-
-        .name{
-
-            font-size:15px;
-
-            font-weight:500;
-
-            margin-bottom:10px;
-
-            word-break:break-word;
-        }
-
-        /* =====================================
-           META
-        ====================================== */
-
-        .meta{
-
-            opacity:0.55;
-
-            font-size:12px;
-
-            margin-bottom:6px;
-
-            word-break:break-all;
-        }
-
-        /* =====================================
-           EMPTY STATE
-        ====================================== */
-
-        .empty{
-
-            opacity:0.35;
-
-            text-align:center;
-
-            margin-top:80px;
-
-            font-size:14px;
-        }
-
-        /* =====================================
-           SCROLLBAR
-        ====================================== */
-
-        ::-webkit-scrollbar{
-
-            width:8px;
-        }
-
-        ::-webkit-scrollbar-thumb{
-
-            background:#222;
-
-            border-radius:10px;
-        }
-
-        ::-webkit-scrollbar-track{
-
-            background:#0c0c0c;
-        }
-
-    </style>
-
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    >
+    <title>Downloads</title>
+    <link rel="stylesheet" href="../styles/styles.css">
 </head>
 
-<body>
+<body data-view="downloads" class="downloadsView">
 
-<!-- =====================================
-     HEADER
-====================================== -->
-
-<div class="header">
-
-    <div>
-
-        <div class="title">
-            Downloads
+<main class="downloadsPage">
+    <header class="downloadsHeader">
+        <div>
+            <div class="downloadsTitle">Downloads</div>
+            <div class="downloadsSubtitle">Download history and saved files</div>
         </div>
+    </header>
 
-        <div class="subtitle">
-            Download history and saved files
-        </div>
-
+    <div id="downloadsEmpty" class="emptyState" hidden>
+        No downloads yet.
     </div>
 
-</div>
+    <div id="downloadsList" class="downloadsList"></div>
+</main>
 
-<!-- =====================================
-     DOWNLOADS CONTAINER
-====================================== -->
-
-<div id="downloads"></div>
-
-<!-- =====================================
-     SCRIPT
-====================================== -->
-
-<script src="downloads.js"></script>
-
+<script src="../renderer/renderer.js" defer></script>
 </body>
 </html>

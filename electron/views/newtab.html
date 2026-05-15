@@ -1,432 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <title>
-        BlackShield X
-    </title>
-
-    <style>
-
-        *{
-            box-sizing:border-box;
-        }
-
-        body{
-
-            margin:0;
-
-            width:100vw;
-            height:100vh;
-
-            overflow:hidden;
-
-            display:flex;
-
-            align-items:center;
-            justify-content:center;
-
-            flex-direction:column;
-
-            background:
-                    radial-gradient(
-                            circle at top,
-                            #111111,
-                            #050505 60%
-                    );
-
-            color:white;
-
-            font-family:
-                    "Segoe UI",
-                    sans-serif;
-        }
-
-        /* =====================================
-           BACKGROUND GLOW
-        ====================================== */
-
-        .glow{
-
-            position:absolute;
-
-            width:700px;
-            height:700px;
-
-            border-radius:50%;
-
-            background:
-                    radial-gradient(
-                            circle,
-                            rgba(0,140,255,0.08),
-                            transparent 70%
-                    );
-
-            filter:blur(90px);
-
-            animation:
-                    floatGlow 8s ease-in-out
-                    infinite alternate;
-        }
-
-        @keyframes floatGlow{
-
-            from{
-                transform:
-                        translate(-5%, -5%);
-            }
-
-            to{
-                transform:
-                        translate(5%, 5%);
-            }
-        }
-
-        /* =====================================
-           CONTENT
-        ====================================== */
-
-        .container{
-
-            position:relative;
-
-            z-index:2;
-
-            width:700px;
-
-            max-width:90vw;
-
-            text-align:center;
-        }
-
-        /* =====================================
-           LOGO
-        ====================================== */
-
-        .logo{
-
-            font-size:46px;
-
-            font-weight:700;
-
-            letter-spacing:3px;
-
-            margin-bottom:12px;
-        }
-
-        .subtitle{
-
-            opacity:0.5;
-
-            font-size:14px;
-
-            margin-bottom:40px;
-        }
-
-        /* =====================================
-           SEARCH
-        ====================================== */
-
-        .searchWrap{
-
-            display:flex;
-
-            align-items:center;
-
-            gap:12px;
-        }
-
-        #searchInput{
-
-            flex:1;
-
-            height:56px;
-
-            border:none;
-            outline:none;
-
-            border-radius:18px;
-
-            background:#101010;
-
-            color:white;
-
-            padding:0 18px;
-
-            font-size:15px;
-
-            transition:0.2s;
-        }
-
-        #searchInput:focus{
-
-            background:#151515;
-        }
-
-        #searchBtn{
-
-            width:110px;
-            height:56px;
-
-            border:none;
-            outline:none;
-
-            border-radius:18px;
-
-            background:#161616;
-
-            color:white;
-
-            cursor:pointer;
-
-            transition:0.2s;
-
-            font-size:14px;
-        }
-
-        #searchBtn:hover{
-
-            background:#242424;
-        }
-
-        /* =====================================
-           SHORTCUTS
-        ====================================== */
-
-        .shortcuts{
-
-            margin-top:40px;
-
-            display:flex;
-
-            justify-content:center;
-
-            gap:16px;
-
-            flex-wrap:wrap;
-        }
-
-        .shortcut{
-
-            width:130px;
-            height:90px;
-
-            border-radius:18px;
-
-            background:#101010;
-
-            border:
-                    1px solid
-                    rgba(255,255,255,0.04);
-
-            display:flex;
-
-            align-items:center;
-            justify-content:center;
-
-            flex-direction:column;
-
-            cursor:pointer;
-
-            transition:0.2s;
-        }
-
-        .shortcut:hover{
-
-            transform:
-                    translateY(-3px);
-
-            background:#171717;
-        }
-
-        .shortcutIcon{
-
-            font-size:24px;
-
-            margin-bottom:10px;
-        }
-
-        .shortcutText{
-
-            font-size:13px;
-
-            opacity:0.7;
-        }
-
-        /* =====================================
-           FOOTER
-        ====================================== */
-
-        .footer{
-
-            position:absolute;
-
-            bottom:25px;
-
-            opacity:0.25;
-
-            font-size:12px;
-        }
-
-    </style>
-
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    >
+    <title>New Tab</title>
+    <link rel="stylesheet" href="../styles/newtab.css">
 </head>
 
-<body>
-
-<!-- BACKGROUND -->
+<body data-view="newtab">
 
 <div class="glow"></div>
 
-<!-- CONTENT -->
-
-<div class="container">
-
-    <!-- LOGO -->
-
-    <div class="logo">
-        BLACKSHIELD X
-    </div>
-
-    <div class="subtitle">
-        Secure Browsing • Persistent Sessions
-    </div>
-
-    <!-- SEARCH -->
+<main class="container">
+    <div class="logo">BLACKSHIELD X</div>
+    <div class="subtitle">Secure Browsing - Persistent Sessions</div>
 
     <div class="searchWrap">
-
         <input
                 id="searchInput"
+                autocomplete="off"
+                spellcheck="false"
                 placeholder="Search or enter URL"
         >
 
-        <button
-                id="searchBtn"
-                onclick="search()"
-        >
+        <button id="searchBtn" type="button">
             Search
         </button>
-
     </div>
 
-    <!-- SHORTCUTS -->
-
-    <div class="shortcuts">
-
-        <div
+    <div class="shortcuts" aria-label="Shortcuts">
+        <button
                 class="shortcut"
-                onclick="openSite('https://youtube.com')"
+                type="button"
+                data-shortcut-url="https://youtube.com"
         >
+            <span class="shortcutIcon">YT</span>
+            <span class="shortcutText">YouTube</span>
+        </button>
 
-            <div class="shortcutIcon">
-                ▶
-            </div>
-
-            <div class="shortcutText">
-                YouTube
-            </div>
-
-        </div>
-
-        <div
+        <button
                 class="shortcut"
-                onclick="openSite('https://github.com')"
+                type="button"
+                data-shortcut-url="https://github.com"
         >
+            <span class="shortcutIcon">GH</span>
+            <span class="shortcutText">GitHub</span>
+        </button>
 
-            <div class="shortcutIcon">
-                💻
-            </div>
-
-            <div class="shortcutText">
-                GitHub
-            </div>
-
-        </div>
-
-        <div
+        <button
                 class="shortcut"
-                onclick="openSite('https://gmail.com')"
+                type="button"
+                data-shortcut-url="https://gmail.com"
         >
+            <span class="shortcutIcon">GM</span>
+            <span class="shortcutText">Gmail</span>
+        </button>
 
-            <div class="shortcutIcon">
-                ✉
-            </div>
-
-            <div class="shortcutText">
-                Gmail
-            </div>
-
-        </div>
-
-        <div
+        <button
                 class="shortcut"
-                onclick="openSite('https://duckduckgo.com')"
+                type="button"
+                data-shortcut-url="https://duckduckgo.com"
         >
-
-            <div class="shortcutIcon">
-                🔍
-            </div>
-
-            <div class="shortcutText">
-                DuckDuckGo
-            </div>
-
-        </div>
-
+            <span class="shortcutIcon">DDG</span>
+            <span class="shortcutText">DuckDuckGo</span>
+        </button>
     </div>
+</main>
 
-</div>
+<div class="footer">BlackShield X Browser</div>
 
-<!-- FOOTER -->
-
-<div class="footer">
-    BlackShield X Browser
-</div>
-
-<!-- SCRIPT -->
-
-<script>
-
-    const input =
-        document.getElementById(
-            "searchInput"
-        );
-
-    function search(){
-
-        const value =
-            input.value.trim();
-
-        if(!value){
-            return;
-        }
-
-        window.api.loadURL(value);
-    }
-
-    input.addEventListener(
-
-        "keydown",
-
-        (event)=>{
-
-            if(event.key === "Enter"){
-
-                search();
-            }
-        }
-    );
-
-    function openSite(url){
-
-        window.api.loadURL(url);
-    }
-
-</script>
-
+<script src="../renderer/renderer.js" defer></script>
 </body>
 </html>
