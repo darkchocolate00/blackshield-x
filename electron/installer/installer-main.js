@@ -5,6 +5,9 @@ const AdmZip = require("adm-zip");
 
 const INSTALL_ROOT = "C:\\Program Files\\BlackShieldX";
 const USER_DATA_DIR = path.join(app.getPath("appData"), "BlackShieldX");
+const ICON_PATH = path.join(__dirname, "..", "assets", "icon.ico");
+
+app.setAppUserModelId("com.blackshieldx.installer");
 
 let installerWindow = null;
 
@@ -39,8 +42,8 @@ function validateInstallPath(installPath) {
     return resolved;
 }
 
-function runtimeSourceZip() {
-    const configured = process.env.BLACKSHIELD_RUNTIME_ZIP || "";
+function runtimeSource() {
+    const configured = process.env.BLACKSHIELD_RUNTIME_PATH || process.env.BLACKSHIELD_RUNTIME_ZIP || "";
 
     if (configured) {
         return path.resolve(configured);
@@ -50,7 +53,12 @@ function runtimeSourceZip() {
         ? process.resourcesPath
         : __dirname;
 
-    return path.join(base, "runtime", "blackshield-runtime.zip");
+    const runtimeDir = path.join(base, "runtime");
+    const runtimeZip = path.join(runtimeDir, "blackshield-runtime.zip");
+
+    return fs.existsSync(runtimeDir) && fs.statSync(runtimeDir).isDirectory() && !fs.existsSync(runtimeZip)
+        ? runtimeDir
+        : runtimeZip;
 }
 
 function validateZipEntry(entry, destinationDir) {
@@ -85,6 +93,62 @@ function extractRuntime(zipPath, installPath, sendProgress) {
     });
 }
 
+function walkFiles(directory) {
+    const results = [];
+
+    fs.readdirSync(directory, {
+        withFileTypes: true
+    }).forEach((entry) => {
+        const fullPath = path.join(directory, entry.name);
+
+        if (entry.isDirectory()) {
+            results.push(...walkFiles(fullPath));
+            return;
+        }
+
+        if (entry.isFile()) {
+            results.push(fullPath);
+        }
+    });
+
+    return results;
+}
+
+function copyRuntimeDirectory(sourceDir, installPath, sendProgress) {
+    if (!fs.existsSync(sourceDir) || !fs.statSync(sourceDir).isDirectory()) {
+        throw new Error(`Official runtime directory not found: ${sourceDir}`);
+    }
+
+    const files = walkFiles(sourceDir);
+
+    files.forEach((filePath, index) => {
+        const relative = path.relative(sourceDir, filePath).replace(/\\/g, "/");
+        const target = ensureInside(installPath, path.join(installPath, relative));
+
+        fs.mkdirSync(path.dirname(target), {
+            recursive: true
+        });
+        fs.copyFileSync(filePath, target);
+
+        sendProgress(Math.round(((index + 1) / files.length) * 100));
+    });
+}
+
+function installRuntimePayload(sourcePath, installPath, sendProgress) {
+    if (!fs.existsSync(sourcePath)) {
+        throw new Error(
+            `Official runtime package not found. Run npm run app:dist first. Missing: ${sourcePath}`
+        );
+    }
+
+    if (fs.statSync(sourcePath).isDirectory()) {
+        copyRuntimeDirectory(sourcePath, installPath, sendProgress);
+        return;
+    }
+
+    extractRuntime(sourcePath, installPath, sendProgress);
+}
+
 function backupExistingRuntime(installPath) {
     if (!fs.existsSync(installPath)) {
         return "";
@@ -106,7 +170,7 @@ function inspectRuntime(installPath) {
     const target = validateInstallPath(installPath || INSTALL_ROOT);
     const exists = fs.existsSync(target);
     const executable = path.join(target, "BlackShield X.exe");
-    const sourceZip = runtimeSourceZip();
+    const sourcePath = runtimeSource();
 
     return {
         installPath: target,
@@ -114,27 +178,33 @@ function inspectRuntime(installPath) {
         exists,
         executableExists: fs.existsSync(executable),
         mode: exists ? "repair" : "install",
-        runtimePackagePath: sourceZip,
-        runtimePackageReady: fs.existsSync(sourceZip),
+        runtimePackagePath: sourcePath,
+        runtimePackageReady: fs.existsSync(sourcePath),
         preservesUserData: true
     };
 }
 
 async function installRuntime(event, options = {}) {
     const installPath = validateInstallPath(options.installPath || INSTALL_ROOT);
-    const sourceZip = runtimeSourceZip();
+    const sourcePath = runtimeSource();
     const mode = options.mode || "install";
+    let lastProgress = -1;
 
-    if (!fs.existsSync(sourceZip)) {
-        throw new Error(
-            `Official runtime package not found. Run npm run runtime:zip or set BLACKSHIELD_RUNTIME_ZIP. Missing: ${sourceZip}`
-        );
-    }
+    const sendProgress = (percent, message) => {
+        const normalized = Math.max(0, Math.min(100, Math.round(percent)));
 
-    event.sender.send("installer:progress", {
-        percent: 4,
-        message: "Preparing protected runtime location"
-    });
+        if (normalized === lastProgress) {
+            return;
+        }
+
+        lastProgress = normalized;
+        event.sender.send("installer:progress", {
+            percent: normalized,
+            message
+        });
+    };
+
+    sendProgress(4, "Preparing protected runtime location");
 
     const quarantinePath = mode === "repair" || mode === "reinstall"
         ? backupExistingRuntime(installPath)
@@ -142,26 +212,17 @@ async function installRuntime(event, options = {}) {
 
     fs.mkdirSync(installPath, { recursive: true });
 
-    event.sender.send("installer:progress", {
-        percent: 12,
-        message: "Installing official BlackShield runtime"
-    });
+    sendProgress(12, "Installing official BlackShield runtime");
 
-    extractRuntime(sourceZip, installPath, (percent) => {
-        event.sender.send("installer:progress", {
-            percent: 12 + Math.round(percent * 0.78),
-            message: "Restoring clean runtime files"
-        });
+    installRuntimePayload(sourcePath, installPath, (percent) => {
+        sendProgress(12 + Math.round(percent * 0.78), "Restoring clean runtime files");
     });
 
     fs.mkdirSync(USER_DATA_DIR, {
         recursive: true
     });
 
-    event.sender.send("installer:progress", {
-        percent: 96,
-        message: "Reconnecting preserved user profile"
-    });
+    sendProgress(96, "Reconnecting preserved user profile");
 
     fs.writeFileSync(path.join(installPath, ".blackshield-runtime"), "official runtime\n");
 
@@ -182,6 +243,7 @@ function createWindow() {
         minHeight: 640,
         frame: false,
         backgroundColor: "#050505",
+        ...(fs.existsSync(ICON_PATH) ? { icon: ICON_PATH } : {}),
         webPreferences: {
             preload: path.join(__dirname, "installer-preload.js"),
             contextIsolation: true,

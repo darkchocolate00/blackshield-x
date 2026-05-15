@@ -5,6 +5,7 @@ build/
 
 electron/dist/
 electron/installer-dist/
+electron/installer-upload/
 electron/installer/runtime/
 electron/node_modules/
 electron/out/

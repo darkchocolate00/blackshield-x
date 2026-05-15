@@ -7,6 +7,7 @@ const electronRoot = path.join(repoRoot, "electron");
 const outputPath = path.join(electronRoot, "security", "integrity-manifest.json");
 
 const INCLUDE_DIRS = [
+    "assets",
     "installer",
     "renderer",
     "security",

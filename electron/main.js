@@ -14,6 +14,8 @@ const updater = require("./updater/updater");
 const integrity = require("./security/integrity");
 const recovery = require("./security/recovery");
 
+app.setAppUserModelId("com.blackshieldx.app");
+
 /*
  * Main-process architecture:
  * - Owns the native Electron window, BrowserView tabs, persistent profile files,

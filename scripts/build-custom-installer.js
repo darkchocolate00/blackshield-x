@@ -2,15 +2,13 @@ const fs = require("fs");
 const path = require("path");
 const { Arch, Platform, build } = require("../electron/node_modules/electron-builder");
 
-const packageRuntime = require("./package-runtime");
-
 const repoRoot = path.resolve(__dirname, "..");
 const electronRoot = path.join(repoRoot, "electron");
-const runtimeZip = path.join(electronRoot, "installer", "runtime", "blackshield-runtime.zip");
+const runtimeDir = path.join(electronRoot, "dist", "win-unpacked");
 
 async function buildCustomInstaller() {
-    if (!fs.existsSync(runtimeZip)) {
-        packageRuntime();
+    if (!fs.existsSync(runtimeDir)) {
+        throw new Error(`Packaged runtime missing. Run npm run app:dist first: ${runtimeDir}`);
     }
 
     await build({
@@ -20,11 +18,13 @@ async function buildCustomInstaller() {
             appId: "com.blackshieldx.installer",
             productName: "BlackShield X Installer",
             directories: {
-                output: "installer-dist",
+                output: "installer-upload",
                 buildResources: "build"
             },
             files: [
                 "installer/**",
+                "assets/icon.ico",
+                "assets/icon.png",
                 "package.json",
                 "!installer/runtime/**",
                 "!dist/**",
@@ -40,16 +40,16 @@ async function buildCustomInstaller() {
             },
             extraResources: [
                 {
-                    from: "installer/runtime/blackshield-runtime.zip",
-                    to: "runtime/blackshield-runtime.zip"
-                },
-                {
-                    from: "installer/runtime/blackshield-runtime.zip.sha256",
-                    to: "runtime/blackshield-runtime.zip.sha256"
+                    from: "dist/win-unpacked",
+                    to: "runtime",
+                    filter: [
+                        "**/*"
+                    ]
                 }
             ],
             win: {
                 target: ["portable"],
+                icon: "assets/icon.ico",
                 requestedExecutionLevel: "requireAdministrator"
             },
             portable: {

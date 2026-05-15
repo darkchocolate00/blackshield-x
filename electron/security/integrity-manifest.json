@@ -1,18 +1,28 @@
 {
   "schemaVersion": 1,
   "product": "BlackShield X",
-  "integrityId": "bsx-20260515131629",
+  "integrityId": "bsx-20260515151817",
   "buildSignature": "local-signed-build",
   "buildChannel": "latest",
   "hashAlgorithm": "sha256",
   "signatureAlgorithm": "ed25519",
   "signed": true,
-  "signature": "AaXRQDCUBy0kPNJ3J6vXXqd9sz4i6MmZv32R3G4lcTWHqZFRYavXe2X661OXyZaDTNSbJEGDI02YGPW41WsGCA==",
+  "signature": "vM84ovzASVXEsyBV0IhUn+qeqG7aBqnTVaA3xczxDkQMxZFvewdqxba+7WhW8U2Mdtk0wR0OchBseOXWqkbQDQ==",
   "backendTrust": {
     "required": false,
     "tokenSha256": ""
   },
   "files": [
+    {
+      "root": "app",
+      "path": "assets/icon.ico",
+      "sha256": "0ca8ffbf3c394dd3c084890c52940df31f3fb83960a30a541b8cf85b9dd531ae"
+    },
+    {
+      "root": "app",
+      "path": "assets/icon.png",
+      "sha256": "8c9a3770ba25f7b077d3d5dafa0a24c1710b8d17e467562fa1979522c92473c8"
+    },
     {
       "root": "app",
       "path": "installer/index.html",
@@ -21,7 +31,7 @@
     {
       "root": "app",
       "path": "installer/installer-main.js",
-      "sha256": "89a5261072c45d023bf8b07a9a199339c1954214c259982f03ecfa2a15ca57a5"
+      "sha256": "c24c6feeadeb8bce5fe3e8440ee795498eab28cf982c16da7c50477a5b15923b"
     },
     {
       "root": "app",
@@ -31,7 +41,7 @@
     {
       "root": "app",
       "path": "installer/installer-renderer.js",
-      "sha256": "73e1874e92437834fcd014e4648b4ee3851c9334522fa730c985262c3ce5e1f3"
+      "sha256": "b4518cca372adfc569a80200f5ed880002fa77e4a453f515df92c9838a997e05"
     },
     {
       "root": "app",
@@ -41,12 +51,12 @@
     {
       "root": "app",
       "path": "main.js",
-      "sha256": "a72e1207fb3f709983aff75c63c29f235d6c4d9355d6ff940b04b48987fed9a5"
+      "sha256": "e8d7cab6966e6e3d4c66b72051b7d5cd5ae4b3688900d208db1f24ec9b0fc8e0"
     },
     {
       "root": "app",
       "path": "package.json",
-      "sha256": "61df3a7ef9fb95944ca415dedd2955674c74c8e3ea8a70d3801e2aeb4cea091d"
+      "sha256": "beb0f2d49b2b5348bd8e6ff0ccf02ba9b9626c5c2323b587be4eb1c1bc724d86"
     },
     {
       "root": "app",

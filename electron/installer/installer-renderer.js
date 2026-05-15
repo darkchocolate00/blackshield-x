@@ -44,7 +44,7 @@
             const result = await window.installer.inspect(installPath.value);
             runtimeMode = result.mode;
             pathStatus.textContent = !result.runtimePackageReady
-                ? `Runtime package missing. Run npm run runtime:zip or set BLACKSHIELD_RUNTIME_ZIP.`
+                ? "Runtime package missing. Run npm run app:dist before packaging the installer."
                 : result.exists
                 ? "Existing runtime detected. Repair mode will preserve your profile and replace runtime files."
                 : "Clean install path ready. Your profile will be created or reconnected in AppData.";

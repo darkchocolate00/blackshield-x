@@ -1,6 +1,6 @@
 {
   "name": "blackshieldx",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -30,6 +30,8 @@
       "!out/**",
       "!updates/**",
       "!modules/**",
+      "!installer-dist/**",
+      "!installer-upload/**",
       "!installer/runtime/**",
       "!security/local-signing/**",
       "!profile/*.json",
@@ -71,6 +73,7 @@
       }
     ],
     "win": {
+      "icon": "assets/icon.ico",
       "target": [
         "nsis",
         "portable"
